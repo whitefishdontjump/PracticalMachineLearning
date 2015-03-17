@@ -1,0 +1,202 @@
+---
+title: "Practical Machine Learning Course Project"
+author: "WhitefishDontJump"
+date: "March 2015"
+output:
+  html_document:
+    keep_md: yes
+---
+
+The source of data for this project is from
+
+Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. **Qualitative Activity Recognition of Weight Lifting Exercises.** Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013
+
+Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
+
+### Synopsis
+
+#### Exploration, Cleaning and Model Development
+
+1.  Response is categorical (factor with 5 levels, A to E).
+2.  The predictors, after cleaning, are entirely integer or numeric, except user_name.
+3.  I will retain user_name as a factor variable.  It is possible that individual users uniquely condition the range of responses in other predictors.
+4.  I plan to use random forest (via caret's train function), and will use a three fold cross validation of rf results.
+5. There are 53 predictor variables after cleaning the raw dataset.  Given the size of the dataset, and selecting 50% of the training set, a 3 fold validation will yield more than 6000 observations per fold, on a base of more than 9800 observations in one half of the training dataset.
+
+#### Results Summary
+
+1. Random Forest yielded a highly accurate predictive model with an estimated out of sample error rate of 1 %.
+
+2. While the response was somewhat conditioned by which user (variable user_name) was measured, the factor user_name had minimal importance in the resulting model.
+
+--------------------------------------------------------------------------
+
+
+```{r Getting and Cleaning Data, tidy=TRUE}
+
+    training <- read.csv("pml-training.csv", 
+                         na.strings = c("NA", "", "#DIV/0!"))
+
+    testing <- read.csv("pml-testing.csv", 
+                        na.strings = c("NA", "", "#DIV/0!"))
+
+##  View(training)
+
+### lots of missing data and/or NAs ##
+
+# I will be removing any columns with NAs as predictors in the training set.
+
+    cols2get <- colSums(is.na(training))==0
+    cleantraining <- training[, cols2get]
+
+###  leaves 60 columns
+## same cleaning for testing data (optional choice on my part)
+
+    cols2get2 <- colSums(is.na(testing))==0
+    cleantesting <- testing[,cols2get2]
+
+### remove row "X", as well as time date window columns
+###  which are not related to prediction of 'classe'
+
+      cleantraining <- cleantraining[,c(-1, -3, -4, -5, -6, -7)]
+      cleantesting <- cleantesting[,c(-1, -3, -4, -5, -6, -7)]
+
+      require(Revobase)  ## Revolution Analytics multi-threading
+      setMKLthreads(2)  ## parallel processing, threads = # of cores
+      require(parallel)
+      require(caret)
+
+```
+
+```{r Build Model, tidy=TRUE}
+
+## create new partition in 'training set' and create training1, testing1 set.
+## I will use training1 to create the model and testing1 to estimate out of sample error.
+
+    set.seed(150310) ## for repeatability
+
+    trindex <- as.vector(createDataPartition(cleantraining$classe, 
+                                             p = 0.5, list = FALSE))
+
+    training1 <- cleantraining[trindex,]
+    testing1  <- cleantraining[-trindex,]
+
+##  Initial model with 1/2 of training set and 3 fold cross validation, 
+##  using the random forest method and caret's train() function. 
+##  Afterwards, test the model with other half of training set 
+##  to estimate out of sample accuracy.
+
+    controla <- trainControl(method="cv", 
+                             number = 3, 
+                             allowParallel = TRUE)
+
+    modela <- train(classe~., 
+                    data = training1, 
+                    method="rf", 
+                    trControl = controla)
+
+
+```
+
+
+
+```{r model results and evaluation, tidy=TRUE}
+
+## determine in sample error, which vars are relevant and relative importance
+
+    modela
+
+    confusionMatrix(modela) ## in sample error
+
+    varImp(modela)
+
+
+##  All factor levels of user_name, except Eurico, had relative importance of less than 1. Eurico's activity differed from those of the other users: his user_name factor level had relative importance of 2.35 on the scaled varImp results, compared to 0.54 for Charles, and smaller values for other users. I conclude that user_name had minimal importance in the final model.
+
+
+## Out of Sample Error estimate
+
+##  I will estimate the out of sample error by applying the model to the second part of the training set (named testing1).
+
+    predicta  <- predict(modela, testing1) 
+
+    confusionMatrix(predicta,testing1$classe)
+
+## fit is very good, accuracy 0.99, and does not seem to be overfitting on the testing1 set. I am satisfied with the model result and also believe that using the entire training set can only increase the chance of overfitting.
+
+## Based on this favorable result, I use this model, 'modela', on the class testing set:
+
+    answers <- predict(modela, cleantesting)
+
+    answers
+
+## submitting 'answers' (via the function provided), scored 20 of 20 correct.
+
+```
+
+#### Conclusion:
+
+The random forest method, properly tuned for 3 fold cross validation and a controlled training set size, created a prediction model with 99% accuracy in an out of sample test.
+
+
+#### Supplementary Section: How much do users vary in their response? Does removing user_name as a predictor signifigantly decrease model accuracy?
+
+Here is a scatter plot of total_accel_arm and roll_belt, colored by user_name to examine the variation across users for one of the most important features in the model, roll_belt (see varImp output, above). Note: The selection of total_accel_arm for the plot was somewhat arbitrary; it isn't very important in the model but it is highly variable for each user, so the resulting plot displays the roll_belt values for better visualization of user differences. 
+
+
+```{r Plots , fig.height=8, fig.width=8}
+
+    qplot(total_accel_arm, roll_belt, data=training1, color = user_name)
+
+    
+
+```
+
+Comments on the plot: Can this model be generalized to predict classe for other users not in the data set? While the plot confirms differences among users, it is not very important in the final model, as reported by varImp(). Therefore, it seems likely that the model could have reasonable predictive value on a new user who is not in this data set. 
+
+### Building a model without user_name as predictor
+
+Data prep:  remove user_ name column from previous split data:
+
+```{r modelb data, tidy=TRUE}
+
+training2 <- training1[, -2 ] ## remove user_name column
+testing2 <- testing1[, -2]
+
+##  no need to change controla (train control parameters).
+## will call new model 'modelb'
+
+      modelb <- train(classe~., 
+                    data = training2, 
+                    method="rf", 
+                    trControl = controla)
+
+      modelb      
+      confusionMatrix(modelb) ## in sample error
+
+##    modelb is comparable to modela
+
+      predictb  <- predict(modelb, testing2) 
+
+      confusionMatrix(predictb,testing2$classe)
+
+answersb <- predict(modelb, cleantesting)
+
+answersb == answers  ## test compare predictions
+
+```
+
+While removing user_name as a predictor caused a slight decrease in overall accuracy with the training2 set, it's performance on testing2 and on the submitted test set was excellent.  I conclude that removing user_name from predictors was an acceptable approach to building the predictive model.
+
+Thank you for reading and reviewing my work.
+
+--------------------------------------------------------------------------
+
+Here is sessionInfo(), for reference:
+
+```{r sessioninfo, tidy=TRUE}
+
+print(sessionInfo(), locale=FALSE)
+
+```
+

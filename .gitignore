@@ -41,3 +41,26 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+.gitignore
+.gitattributes
+
+.Rproj.user/*.*/*.*
+Older versions/*.*
+submission_answers/*/*
+*.Rhistory
+.RData
+.Rproj.user/EB741D39/build_options
+*.pper
+.Rproj.user/EB741D39/persistent-state
+.Rproj.user/EB741D39/sdb/prop/153B977D
+.Rproj.user/EB741D39/sdb/prop/52DA2317
+.Rproj.user/EB741D39/sdb/per/t/34739DB1
+.Rproj.user/EB741D39/sdb/prop/58834F0A
+.Rproj.user/EB741D39/sdb/prop/9AEE1A36
+.Rproj.user/EB741D39/sdb/prop/47A87EFF
+.Rproj.user/EB741D39/sdb/prop/A3E26048
+.Rproj.user/EB741D39/sdb/prop/AE6DC088
+.Rproj.user/EB741D39/sdb/prop/B8CF6D8A
+.Rproj.user/EB741D39/sdb/prop/C36FB85E
+.Rproj.user/EB741D39/sdb/prop/INDEX
+*.txt
