@@ -355,8 +355,8 @@ confusionMatrix(predictb, testing2$classe)</code></pre>
 answersb == answers  ## test compare predictions</code></pre>
 <pre><code>##  [1] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
 ## [15] TRUE TRUE TRUE TRUE TRUE TRUE</code></pre>
-<p>While removing user_name as a predictor caused a slight decrease in overall accuracy with the training2 set, it’s performance on testing2 and on the submitted test set was excellent. I conclude that removing user_name from predictors was an acceptable approach to building the predictive model.</p>
-<p>Thank you for reading and reviewing my work.</p>
+<p>Removing user_name as a predictor caused a slight increase in overall accuracy with the training2 set, and it’s performance on testing2 and on the submitted test set was excellent. 
+I conclude that removing user_name from predictors was an acceptable approach to building the predictive model.</p>
 <hr />
 <p>Here is sessionInfo(), for reference:</p>
 <pre class="r"><code>print(sessionInfo(), locale = FALSE)</code></pre>
