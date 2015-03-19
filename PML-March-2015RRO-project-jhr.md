@@ -369,7 +369,7 @@ answersb == answers  ## test compare predictions
 ## [15] TRUE TRUE TRUE TRUE TRUE TRUE
 ```
 
-While removing user_name as a predictor caused a slight decrease in overall accuracy with the training2 set, it's performance on testing2 and on the submitted test set was excellent.  I conclude that removing user_name from predictors was an acceptable approach to building the predictive model.
+Removing user_name as a predictor caused a slight increase in overall accuracy with the training2 set, and it’s performance on testing2 and on the submitted test set was excellent. I conclude that removing user_name from predictors was an acceptable approach to building the predictive model.
 
 Thank you for reading and reviewing my work.
 
