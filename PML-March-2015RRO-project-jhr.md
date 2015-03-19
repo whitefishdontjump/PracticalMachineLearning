@@ -1,4 +1,4 @@
-# PML Course Project
+# Practical Machine Learning Course Project
 WhitefishDontJump  
 March 2015  
 
@@ -53,35 +53,13 @@ cleantesting <- testing[, cols2get2]
 
 cleantraining <- cleantraining[, c(-1, -3, -4, -5, -6, -7)]
 cleantesting <- cleantesting[, c(-1, -3, -4, -5, -6, -7)]
-
-require(Revobase)  ## Revolution Analytics multi-threading
 ```
 
-```
-## Loading required package: Revobase
-```
-
-```r
-setMKLthreads(2)  ## parallel processing, threads = # of cores
-require(parallel)
-```
-
-```
-## Loading required package: parallel
-```
 
 ```r
 require(caret)
-```
+require(parallel)
 
-```
-## Loading required package: caret
-## Loading required package: lattice
-## Loading required package: ggplot2
-```
-
-
-```r
 ## create new partition in 'training set' and create training1, testing1 set.
 ## I will use training1 to create the model and testing1 to estimate out of
 ## sample error.
@@ -101,12 +79,6 @@ testing1 <- cleantraining[-trindex, ]
 controla <- trainControl(method = "cv", number = 3, allowParallel = TRUE)
 
 modela <- train(classe ~ ., data = training1, method = "rf", trControl = controla)
-```
-
-```
-## Loading required package: randomForest
-## randomForest 4.6-10
-## Type rfNews() to see new features/changes/bug fixes.
 ```
 
 
@@ -420,18 +392,18 @@ print(sessionInfo(), locale = FALSE)
 ## 
 ## other attached packages:
 ## [1] randomForest_4.6-10 caret_6.0-41        ggplot2_1.0.0      
-## [4] lattice_0.20-29     Revobase_7.3.0     
+## [4] lattice_0.20-29    
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] BradleyTerry2_1.0-5 brglm_0.5-9         car_2.0-22         
-##  [4] class_7.3-11        codetools_0.2-9     colorspace_1.2-4   
+##  [4] class_7.3-11        codetools_0.2-10    colorspace_1.2-4   
 ##  [7] compiler_3.1.2      digest_0.6.8        e1071_1.6-4        
 ## [10] evaluate_0.5.5      foreach_1.4.2       formatR_1.0        
 ## [13] grid_3.1.2          gtable_0.1.2        gtools_3.4.1       
 ## [16] htmltools_0.2.6     iterators_1.0.7     knitr_1.9          
-## [19] labeling_0.3        lme4_1.1-7          MASS_7.3-35        
-## [22] Matrix_1.1-4        minqa_1.2.4         munsell_0.4.2      
-## [25] nlme_3.1-118        nloptr_1.0.4        nnet_7.3-8         
+## [19] labeling_0.3        lme4_1.1-7          MASS_7.3-37        
+## [22] Matrix_1.1-5        minqa_1.2.4         munsell_0.4.2      
+## [25] nlme_3.1-119        nloptr_1.0.4        nnet_7.3-8         
 ## [28] plyr_1.8.1          proto_0.3-10        Rcpp_0.11.4        
 ## [31] reshape2_1.4.1      rmarkdown_0.5.1     scales_0.2.4       
 ## [34] splines_3.1.2       stringr_0.6.2       tools_3.1.2        
