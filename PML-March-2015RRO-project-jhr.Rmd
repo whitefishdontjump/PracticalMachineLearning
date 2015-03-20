@@ -25,9 +25,12 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
 
 #### Results Summary
 
-1. Random Forest yielded a highly accurate predictive model with an estimated out of sample error rate of 1 %.
+1. Initial model: Random Forest yielded a highly accurate predictive model (modela) with an estimated out of sample error rate of 1 %. It required 15 minutes to complete execution on my PC and correctly predicted the 20 submission test cases.
 
-2. While the response was somewhat conditioned by which user (variable user_name) was measured, the factor user_name had minimal importance in the resulting model.
+2. Two further Random Forest models: Modelb (removed user_name) and Modelc (18 predictors based varImp). Modelc ran ~ 10 x faster than Modela and Modelb, with an estimated out of sample error of 1.4%. Both Modelb and Modelc predicted the 20 submission test cases correctly.
+
+3. I conclude that Modelc, with 18 predictors, provides a better balance of accuracy vs speed that either modela or modelb.
+
 
 --------------------------------------------------------------------------
 
@@ -66,7 +69,8 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
 
 ```{r Build Model, tidy=TRUE,message=FALSE}
 
-      require(caret)
+    require(parallel)
+    require(caret)
 
 ## create new partition in 'training set' and create training1, testing1 set.
 ## I will use training1 to create the model and testing1 to estimate out of sample error.
@@ -132,12 +136,15 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
 
 ```
 
-#### Conclusion:
+#### Initial Model comments:
 
 The random forest method, properly tuned for 3 fold cross validation and a controlled training set size, created a prediction model with 99% accuracy in an out of sample test.
 
 
-#### Supplementary Section: How much do users vary in their response? Does removing user_name as a predictor signifigantly decrease model accuracy?
+----------------------------------------------------------------------------
+
+
+#### What about individual user conditioning the predictors?
 
 Here is a scatter plot of total_accel_arm and roll_belt, colored by user_name to examine the variation across users for one of the most important features in the model, roll_belt (see varImp output, above). Note: The selection of total_accel_arm for the plot was somewhat arbitrary; it isn't very important in the model but it is highly variable for each user, so the resulting plot displays the roll_belt values for better visualization of user differences. 
 
@@ -150,16 +157,20 @@ Here is a scatter plot of total_accel_arm and roll_belt, colored by user_name to
 
 ```
 
-Comments on the plot: Can this model be generalized to predict classe for other users not in the data set? While the plot confirms differences among users, it is not very important in the final model, as reported by varImp(). Therefore, it seems likely that the model could have reasonable predictive value on a new user who is not in this data set. 
+Comments on the plot: Can this model be generalized to predict classe for other users not in the data set? While the plot confirms differences among users, it is not very important in the final model, as reported by varImp(). 
 
-### Building a model without user_name as predictor
+
+----------------------------------------------------------------------------
+
+
+### Modelb: Building a model without user_name as predictor
 
 Data prep:  remove user_ name column from previous split data:
 
 ```{r modelb data, tidy=TRUE}
 
-training2 <- training1[, -2 ] ## remove user_name column
-testing2 <- testing1[, -2]
+training2 <- training1[, -1 ] ## remove user_name column
+testing2 <- testing1[, -1]
 
 ##  no need to change controla (train control parameters).
 ## will call new model 'modelb'
@@ -184,8 +195,53 @@ answersb == answers  ## test compare predictions
 
 ```
 
-Removing user_name as a predictor caused a slight increase in overall accuracy with the training2 set, and it’s performance on testing2 and on the submitted test set was excellent. 
-I conclude that removing user_name from predictors was an acceptable approach to building the predictive model.
+Removing user_name as a predictor caused little change in overall accuracy with the training2 set, and it’s performance on testing2 and on the submitted test set was excellent. I conclude that removing user_name from predictors was an acceptable approach to building the predictive model.
+
+
+
+----------------------------------------------------------------------------
+
+### Modelc: Reducing predictors to those with higher importance.
+
+```{r reducedimensions,tidy=TRUE}
+
+
+##Use VarImp to remove lowest importance variables (scaled imp less than 10.0), leaving 18 predictors.
+
+importance <- varImp(modelb)$importance
+importance$vars <- rownames(importance)
+##  rownames(importance)  <- NULL
+importance <- importance[order(importance$Overall, decreasing=TRUE),]
+
+impCols <- importance[(importance$Overall >= 10.0),2]
+impCols
+
+training3 <- training2[,c(impCols, "classe")]
+testing3 <- testing2[,c(impCols, "classe")]
+
+### modelc will use reduced dimensionality
+
+modelc <- train(classe~., 
+                    data = training3, 
+                    method="rf", 
+                    trControl = controla)
+
+      modelc      
+      confusionMatrix(modelc) ## in sample error
+
+##    modelc is comparable to modela & modelb
+
+      predictc  <- predict(modelc, testing3) 
+
+      confusionMatrix(predictc,testing3$classe)
+
+answersc <- predict(modelc, cleantesting)
+
+answersc == answers  ## test compare predictions
+
+```
+
+modelc loses very little accuracy on test set (compared to modela) and achieves the same results on the course submission test set.  I conclude that the dimension reduction strategy was successful and reduced training time to about 10% of the time required for the original modela.
 
 Thank you for reading and reviewing my work.
 
@@ -198,4 +254,3 @@ Here is sessionInfo(), for reference:
 print(sessionInfo(), locale=FALSE)
 
 ```
-

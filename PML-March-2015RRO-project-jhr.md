@@ -20,9 +20,12 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
 
 #### Results Summary
 
-1. Random Forest yielded a highly accurate predictive model with an estimated out of sample error rate of 1 %.
+1. Initial model: Random Forest yielded a highly accurate predictive model (modela) with an estimated out of sample error rate of 1 %. It required 15 minutes to complete execution on my PC and correctly predicted the 20 submission test cases.
 
-2. While the response was somewhat conditioned by which user (variable user_name) was measured, the factor user_name had minimal importance in the resulting model.
+2. Two further Random Forest models: Modelb (removed user_name) and Modelc (18 predictors based varImp). Modelc ran ~ 10 x faster than Modela and Modelb, with an estimated out of sample error of 1.4%. Both Modelb and Modelc predicted the 20 submission test cases correctly.
+
+3. I conclude that Modelc, with 18 predictors, provides a better balance of accuracy vs speed that either modela or modelb.
+
 
 --------------------------------------------------------------------------
 
@@ -57,8 +60,8 @@ cleantesting <- cleantesting[, c(-1, -3, -4, -5, -6, -7)]
 
 
 ```r
-require(caret)
 require(parallel)
+require(caret)
 
 ## create new partition in 'training set' and create training1, testing1 set.
 ## I will use training1 to create the model and testing1 to estimate out of
@@ -239,12 +242,15 @@ answers
 ## submitting 'answers' (via the function provided), scored 20 of 20 correct.
 ```
 
-#### Conclusion:
+#### Initial Model comments:
 
 The random forest method, properly tuned for 3 fold cross validation and a controlled training set size, created a prediction model with 99% accuracy in an out of sample test.
 
 
-#### Supplementary Section: How much do users vary in their response? Does removing user_name as a predictor signifigantly decrease model accuracy?
+----------------------------------------------------------------------------
+
+
+#### What about individual user conditioning the predictors?
 
 Here is a scatter plot of total_accel_arm and roll_belt, colored by user_name to examine the variation across users for one of the most important features in the model, roll_belt (see varImp output, above). Note: The selection of total_accel_arm for the plot was somewhat arbitrary; it isn't very important in the model but it is highly variable for each user, so the resulting plot displays the roll_belt values for better visualization of user differences. 
 
@@ -256,16 +262,20 @@ Here is a scatter plot of total_accel_arm and roll_belt, colored by user_name to
 
 ![](PML-March-2015RRO-project-jhr_files/figure-html/Plots -1.png) 
 
-Comments on the plot: Can this model be generalized to predict classe for other users not in the data set? While the plot confirms differences among users, it is not very important in the final model, as reported by varImp(). Therefore, it seems likely that the model could have reasonable predictive value on a new user who is not in this data set. 
+Comments on the plot: Can this model be generalized to predict classe for other users not in the data set? While the plot confirms differences among users, it is not very important in the final model, as reported by varImp(). 
 
-### Building a model without user_name as predictor
+
+----------------------------------------------------------------------------
+
+
+### Modelb: Building a model without user_name as predictor
 
 Data prep:  remove user_ name column from previous split data:
 
 
 ```r
-training2 <- training1[, -2]  ## remove user_name column
-testing2 <- testing1[, -2]
+training2 <- training1[, -1]  ## remove user_name column
+testing2 <- testing1[, -1]
 
 ## no need to change controla (train control parameters).  will call new
 ## model 'modelb'
@@ -290,12 +300,12 @@ modelb
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
-##    2    0.9794129  0.9739479  0.002170773  0.002753130
-##   29    0.9848143  0.9807864  0.002842725  0.003598436
-##   56    0.9802279  0.9749820  0.004973892  0.006297055
+##    2    0.9816553  0.9767861  0.001857278  0.002352296
+##   27    0.9836935  0.9793678  0.002147470  0.002718092
+##   52    0.9763564  0.9700859  0.004426436  0.005598552
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
-## The final value used for the model was mtry = 29.
+## The final value used for the model was mtry = 27.
 ```
 
 ```r
@@ -310,10 +320,10 @@ confusionMatrix(modelb)  ## in sample error
 ##           Reference
 ## Prediction    A    B    C    D    E
 ##          A 28.4  0.3  0.0  0.0  0.0
-##          B  0.0 18.8  0.2  0.0  0.0
-##          C  0.0  0.2 17.1  0.3  0.1
-##          D  0.0  0.0  0.1 16.0  0.1
-##          E  0.0  0.0  0.0  0.0 18.2
+##          B  0.0 18.8  0.2  0.0  0.1
+##          C  0.0  0.2 17.0  0.3  0.0
+##          D  0.0  0.0  0.2 16.0  0.1
+##          E  0.0  0.0  0.0  0.0 18.1
 ```
 
 ```r
@@ -329,33 +339,33 @@ confusionMatrix(predictb, testing2$classe)
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 2787   17    0    0    0
-##          B    2 1870   18    1    1
-##          C    1   11 1690   23    4
-##          D    0    0    2 1583    4
-##          E    0    0    1    1 1794
+##          A 2784   16    0    0    0
+##          B    5 1870   16    5    2
+##          C    1   12 1694   20    8
+##          D    0    0    1 1582    7
+##          E    0    0    0    1 1786
 ## 
 ## Overall Statistics
-##                                          
-##                Accuracy : 0.9912         
-##                  95% CI : (0.9892, 0.993)
-##     No Information Rate : 0.2844         
-##     P-Value [Acc > NIR] : < 2.2e-16      
-##                                          
-##                   Kappa : 0.9889         
-##  Mcnemar's Test P-Value : NA             
+##                                           
+##                Accuracy : 0.9904          
+##                  95% CI : (0.9883, 0.9922)
+##     No Information Rate : 0.2844          
+##     P-Value [Acc > NIR] : < 2.2e-16       
+##                                           
+##                   Kappa : 0.9879          
+##  Mcnemar's Test P-Value : NA              
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9989   0.9852   0.9877   0.9845   0.9950
-## Specificity            0.9976   0.9972   0.9952   0.9993   0.9998
-## Pos Pred Value         0.9939   0.9884   0.9774   0.9962   0.9989
-## Neg Pred Value         0.9996   0.9965   0.9974   0.9970   0.9989
+## Sensitivity            0.9978   0.9852   0.9901   0.9838   0.9906
+## Specificity            0.9977   0.9965   0.9949   0.9990   0.9999
+## Pos Pred Value         0.9943   0.9852   0.9764   0.9950   0.9994
+## Neg Pred Value         0.9991   0.9965   0.9979   0.9968   0.9979
 ## Prevalence             0.2844   0.1935   0.1744   0.1639   0.1838
-## Detection Rate         0.2841   0.1906   0.1723   0.1614   0.1829
-## Detection Prevalence   0.2858   0.1929   0.1762   0.1620   0.1831
-## Balanced Accuracy      0.9983   0.9912   0.9915   0.9919   0.9974
+## Detection Rate         0.2838   0.1906   0.1727   0.1613   0.1821
+## Detection Prevalence   0.2854   0.1935   0.1769   0.1621   0.1822
+## Balanced Accuracy      0.9978   0.9909   0.9925   0.9914   0.9952
 ```
 
 ```r
@@ -369,7 +379,143 @@ answersb == answers  ## test compare predictions
 ## [15] TRUE TRUE TRUE TRUE TRUE TRUE
 ```
 
-Removing user_name as a predictor caused a slight increase in overall accuracy with the training2 set, and it’s performance on testing2 and on the submitted test set was excellent. I conclude that removing user_name from predictors was an acceptable approach to building the predictive model.
+Removing user_name as a predictor caused little change in overall accuracy with the training2 set, and it’s performance on testing2 and on the submitted test set was excellent. I conclude that removing user_name from predictors was an acceptable approach to building the predictive model.
+
+
+
+----------------------------------------------------------------------------
+
+### Modelc: Reducing predictors to those with higher importance.
+
+
+```r
+## Use VarImp to remove lowest importance variables (scaled imp less than
+## 10.0), leaving 18 predictors.
+
+importance <- varImp(modelb)$importance
+importance$vars <- rownames(importance)
+## rownames(importance) <- NULL
+importance <- importance[order(importance$Overall, decreasing = TRUE), ]
+
+impCols <- importance[(importance$Overall >= 10), 2]
+impCols
+```
+
+```
+##  [1] "roll_belt"            "pitch_forearm"        "yaw_belt"            
+##  [4] "magnet_dumbbell_z"    "roll_forearm"         "magnet_dumbbell_y"   
+##  [7] "pitch_belt"           "accel_dumbbell_y"     "roll_dumbbell"       
+## [10] "accel_forearm_x"      "magnet_dumbbell_x"    "accel_belt_z"        
+## [13] "magnet_forearm_z"     "magnet_belt_z"        "accel_dumbbell_z"    
+## [16] "total_accel_dumbbell" "magnet_belt_y"        "gyros_belt_z"
+```
+
+```r
+training3 <- training2[, c(impCols, "classe")]
+testing3 <- testing2[, c(impCols, "classe")]
+
+### modelc will use reduced dimensionality
+
+modelc <- train(classe ~ ., data = training3, method = "rf", trControl = controla)
+
+modelc
+```
+
+```
+## Random Forest 
+## 
+## 9812 samples
+##   18 predictor
+##    5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (3 fold) 
+## 
+## Summary of sample sizes: 6541, 6542, 6541 
+## 
+## Resampling results across tuning parameters:
+## 
+##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
+##    2    0.9777820  0.9718901  0.002909416  0.003679518
+##   10    0.9764572  0.9702233  0.002008272  0.002539815
+##   18    0.9706477  0.9628780  0.004140984  0.005235697
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was mtry = 2.
+```
+
+```r
+confusionMatrix(modelc)  ## in sample error
+```
+
+```
+## Cross-Validated (3 fold) Confusion Matrix 
+## 
+## (entries are percentages of table totals)
+##  
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 28.3  0.4  0.0  0.0  0.0
+##          B  0.1 18.6  0.3  0.0  0.1
+##          C  0.1  0.3 16.9  0.4  0.1
+##          D  0.0  0.1  0.2 15.9  0.1
+##          E  0.0  0.0  0.0  0.0 18.1
+```
+
+```r
+## modelc is comparable to modela & modelb
+
+predictc <- predict(modelc, testing3)
+
+confusionMatrix(predictc, testing3$classe)
+```
+
+```
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 2781   22    0    0    1
+##          B    7 1846   17    1    8
+##          C    0   28 1690   33   10
+##          D    2    2    4 1572    5
+##          E    0    0    0    2 1779
+## 
+## Overall Statistics
+##                                          
+##                Accuracy : 0.9855         
+##                  95% CI : (0.983, 0.9878)
+##     No Information Rate : 0.2844         
+##     P-Value [Acc > NIR] : < 2.2e-16      
+##                                          
+##                   Kappa : 0.9817         
+##  Mcnemar's Test P-Value : NA             
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9968   0.9726   0.9877   0.9776   0.9867
+## Specificity            0.9967   0.9958   0.9912   0.9984   0.9998
+## Pos Pred Value         0.9918   0.9824   0.9597   0.9918   0.9989
+## Neg Pred Value         0.9987   0.9934   0.9974   0.9956   0.9970
+## Prevalence             0.2844   0.1935   0.1744   0.1639   0.1838
+## Detection Rate         0.2835   0.1882   0.1723   0.1602   0.1813
+## Detection Prevalence   0.2858   0.1915   0.1795   0.1616   0.1815
+## Balanced Accuracy      0.9967   0.9842   0.9895   0.9880   0.9932
+```
+
+```r
+answersc <- predict(modelc, cleantesting)
+
+answersc == answers  ## test compare predictions
+```
+
+```
+##  [1] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
+## [15] TRUE TRUE TRUE TRUE TRUE TRUE
+```
+
+modelc loses very little accuracy on test set (compared to modela) and achieves the same results on the course submission test set.  I conclude that the dimension reduction strategy was successful and reduced training time to about 10% of the time required for the original modela.
 
 Thank you for reading and reviewing my work.
 
@@ -383,30 +529,31 @@ print(sessionInfo(), locale = FALSE)
 ```
 
 ```
-## R version 3.1.2 (2014-10-31)
+## R version 3.1.3 (2015-03-09)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
+## Running under: Windows 8 x64 (build 9200)
 ## 
 ## attached base packages:
 ## [1] parallel  stats     graphics  grDevices utils     datasets  methods  
 ## [8] base     
 ## 
 ## other attached packages:
-## [1] randomForest_4.6-10 caret_6.0-41        ggplot2_1.0.0      
-## [4] lattice_0.20-29    
+## [1] randomForest_4.6-10 caret_6.0-41        ggplot2_1.0.1      
+## [4] lattice_0.20-30    
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] BradleyTerry2_1.0-5 brglm_0.5-9         car_2.0-22         
-##  [4] class_7.3-11        codetools_0.2-10    colorspace_1.2-4   
-##  [7] compiler_3.1.2      digest_0.6.8        e1071_1.6-4        
+##  [1] BradleyTerry2_1.0-6 brglm_0.5-9         car_2.0-25         
+##  [4] class_7.3-12        codetools_0.2-11    colorspace_1.2-6   
+##  [7] compiler_3.1.3      digest_0.6.8        e1071_1.6-4        
 ## [10] evaluate_0.5.5      foreach_1.4.2       formatR_1.0        
-## [13] grid_3.1.2          gtable_0.1.2        gtools_3.4.1       
+## [13] grid_3.1.3          gtable_0.1.2        gtools_3.4.1       
 ## [16] htmltools_0.2.6     iterators_1.0.7     knitr_1.9          
-## [19] labeling_0.3        lme4_1.1-7          MASS_7.3-37        
-## [22] Matrix_1.1-5        minqa_1.2.4         munsell_0.4.2      
-## [25] nlme_3.1-119        nloptr_1.0.4        nnet_7.3-8         
-## [28] plyr_1.8.1          proto_0.3-10        Rcpp_0.11.4        
-## [31] reshape2_1.4.1      rmarkdown_0.5.1     scales_0.2.4       
-## [34] splines_3.1.2       stringr_0.6.2       tools_3.1.2        
-## [37] yaml_2.1.13
+## [19] labeling_0.3        lme4_1.1-7          MASS_7.3-39        
+## [22] Matrix_1.1-5        mgcv_1.8-5          minqa_1.2.4        
+## [25] munsell_0.4.2       nlme_3.1-120        nloptr_1.0.4       
+## [28] nnet_7.3-9          pbkrtest_0.4-2      plyr_1.8.1         
+## [31] proto_0.3-10        quantreg_5.11       Rcpp_0.11.5        
+## [34] reshape2_1.4.1      rmarkdown_0.5.1     scales_0.2.4       
+## [37] SparseM_1.6         splines_3.1.3       stringr_0.6.2      
+## [40] tools_3.1.3         yaml_2.1.13
 ```
-
