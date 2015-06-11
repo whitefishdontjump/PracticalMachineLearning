@@ -1,10 +1,12 @@
 ---
 title: "Practical Machine Learning Course Project"
 author: "WhitefishDontJump"
-date: "March 2015"
+date: "June 2015"
 output:
   html_document:
     keep_md: yes
+    theme: readable
+    toc: yes
 ---
 
 The source of data for this project is from
@@ -19,7 +21,7 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
 
 1.  Response is categorical (factor with 5 levels, A to E).
 2.  The predictors, after cleaning, are entirely integer or numeric, except user_name.
-3.  I will retain user_name as a factor variable.  It is possible that individual users uniquely condition the range of responses in other predictors.
+3.  I will retain user_name as a factor variable in initial modelling.  It is possible that individual users uniquely condition the range of responses in other predictors.
 4.  I plan to use random forest (via caret's train function), and will use a three fold cross validation of rf results.
 5. There are 53 predictor variables after cleaning the raw dataset.  Given the size of the dataset, and selecting 50% of the training set, a 3 fold validation will yield more than 6000 observations per fold, on a base of more than 9800 observations in one half of the training dataset.
 
@@ -27,15 +29,16 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
 
 1. Initial model: Random Forest yielded a highly accurate predictive model (modela) with an estimated out of sample error rate of 1 %. It required 15 minutes to complete execution on my PC and correctly predicted the 20 submission test cases.
 
-2. Two further Random Forest models: Modelb (removed user_name) and Modelc (18 predictors based varImp). Modelc ran ~ 10 x faster than Modela and Modelb, with an estimated out of sample error of 1.4%. Both Modelb and Modelc predicted the 20 submission test cases correctly.
+2. One further Random Forest model: Modelc (18 predictors based varImp). Modelc ran ~ 10 x faster than Modela, with an estimated out of sample error of 1.4%. Both Modelb and Modelc predicted the 20 submission test cases correctly.
 
-3. I conclude that Modelc, with 18 predictors, provides a better balance of accuracy vs speed that either modela or modelb.
+3. I conclude that Modelc, with 18 predictors, provides a better balance of accuracy vs speed that either modela.
 
 
 --------------------------------------------------------------------------
 
+### Initial Data Cleaning
 
-```{r Getting and Cleaning Data, tidy=TRUE}
+```{r GettingCleaningData, tidy=TRUE}
 
     training <- read.csv("pml-training.csv", 
                          na.strings = c("NA", "", "#DIV/0!"))
@@ -61,21 +64,29 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
 ### remove row "X", as well as time date window columns
 ###  which are not related to prediction of 'classe'
 
-      cleantraining <- cleantraining[,c(-1, -3, -4, -5, -6, -7)]
-      cleantesting <- cleantesting[,c(-1, -3, -4, -5, -6, -7)]
+      cleantraining <- cleantraining[,c(2,8:60)]
+      cleantesting <- cleantesting[,c(2,8:60)]
 
 
+      
 ```
+
+### Initial Random Forest Model
 
 ```{r Build Model, tidy=TRUE,message=FALSE}
 
-    require(parallel)
-    require(caret)
+      require(parallel)  
+      require(doParallel)
+      mc <- makeCluster(detectCores())
+      registerDoParallel(mc)
+
+      require(caret)
+      
 
 ## create new partition in 'training set' and create training1, testing1 set.
 ## I will use training1 to create the model and testing1 to estimate out of sample error.
 
-    set.seed(150310) ## for repeatability
+    set.seed(1506) ## for repeatability
 
     trindex <- as.vector(createDataPartition(cleantraining$classe, 
                                              p = 0.5, list = FALSE))
@@ -92,9 +103,8 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
                              number = 3, 
                              allowParallel = TRUE)
 
-    modela <- train(classe~., 
-                    data = training1, 
-                    method="rf", 
+    modela <- train(x=training1[,-54],y=training1[,54], 
+                    method="rf",
                     trControl = controla)
 
 
@@ -159,81 +169,42 @@ Here is a scatter plot of total_accel_arm and roll_belt, colored by user_name to
 
 Comments on the plot: Can this model be generalized to predict classe for other users not in the data set? While the plot confirms differences among users, it is not very important in the final model, as reported by varImp(). 
 
-
-----------------------------------------------------------------------------
-
-
-### Modelb: Building a model without user_name as predictor
-
-Data prep:  remove user_ name column from previous split data:
-
-```{r modelb data, tidy=TRUE}
-
-training2 <- training1[, -1 ] ## remove user_name column
-testing2 <- testing1[, -1]
-
-##  no need to change controla (train control parameters).
-## will call new model 'modelb'
-
-      modelb <- train(classe~., 
-                    data = training2, 
-                    method="rf", 
-                    trControl = controla)
-
-      modelb      
-      confusionMatrix(modelb) ## in sample error
-
-##    modelb is comparable to modela
-
-      predictb  <- predict(modelb, testing2) 
-
-      confusionMatrix(predictb,testing2$classe)
-
-answersb <- predict(modelb, cleantesting)
-
-answersb == answers  ## test compare predictions
-
-```
-
-Removing user_name as a predictor caused little change in overall accuracy with the training2 set, and it’s performance on testing2 and on the submitted test set was excellent. I conclude that removing user_name from predictors was an acceptable approach to building the predictive model.
-
-
-
 ----------------------------------------------------------------------------
 
 ### Modelc: Reducing predictors to those with higher importance.
 
+Next, I will test an RF model with the set of predictors reduced to those with scaled importance >= 10, as reported by varImp() under modela.
+
 ```{r reducedimensions,tidy=TRUE}
 
 
-##Use VarImp to remove lowest importance variables (scaled imp less than 10.0), leaving 18 predictors.
+##Use VarImp to remove lowest importance variables (scaled imp less than 10.0), leaving 19 predictors.
 
-importance <- varImp(modelb)$importance
+importance <- varImp(modela)$importance
 importance$vars <- rownames(importance)
-##  rownames(importance)  <- NULL
+
 importance <- importance[order(importance$Overall, decreasing=TRUE),]
 
 impCols <- importance[(importance$Overall >= 10.0),2]
 impCols
 
-training3 <- training2[,c(impCols, "classe")]
-testing3 <- testing2[,c(impCols, "classe")]
+training2 <- training1[,c(impCols, "classe")]
+testing2 <- testing1[,c(impCols, "classe")]
 
 ### modelc will use reduced dimensionality
 
-modelc <- train(classe~., 
-                    data = training3, 
+modelc <- train(x=training2[,-20],y=training2[,20], 
                     method="rf", 
                     trControl = controla)
 
       modelc      
       confusionMatrix(modelc) ## in sample error
 
-##    modelc is comparable to modela & modelb
+##    modelc is comparable to modela
 
-      predictc  <- predict(modelc, testing3) 
+      predictc  <- predict(modelc, testing2) 
 
-      confusionMatrix(predictc,testing3$classe)
+      confusionMatrix(predictc,testing2$classe)
 
 answersc <- predict(modelc, cleantesting)
 
