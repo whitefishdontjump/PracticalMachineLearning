@@ -4,6 +4,7 @@ author: "WhitefishDontJump"
 date: "June 2015"
 output:
   html_document:
+    highlight: tango
     keep_md: yes
     theme: readable
     toc: yes
@@ -19,7 +20,7 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
 
 #### Exploration, Cleaning and Model Development
 
-1.  Response is categorical (factor with 5 levels, A to E).
+1.  Response 'classe' is categorical (factor with 5 levels, A to E).
 2.  The predictors, after cleaning, are entirely integer or numeric, except user_name.
 3.  I will retain user_name as a factor variable in initial modelling.  It is possible that individual users uniquely condition the range of responses in other predictors.
 4.  I plan to use random forest (via caret's train function), and will use a three fold cross validation of rf results.
@@ -27,11 +28,11 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
 
 #### Results Summary
 
-1. Initial model: Random Forest yielded a highly accurate predictive model (modela) with an estimated out of sample error rate of 1 %. It required 15 minutes to complete execution on my PC and correctly predicted the 20 submission test cases.
+1. Initial model: Random Forest yielded a highly accurate predictive model (modela) with an estimated out of sample error rate of 1 %. It required 10 minutes to complete execution on my PC and correctly predicted the 20 submission test cases. The predictor user_name was not important: that is, the response, classe, was not very dependent on which user was being measured.
 
-2. One further Random Forest model: Modelc (18 predictors based varImp). Modelc ran ~ 10 x faster than Modela, with an estimated out of sample error of 1.4%. Both Modelb and Modelc predicted the 20 submission test cases correctly.
+2. One further Random Forest model: modelc (19 predictors based on varImp) removed user_name as well as many other predictors. modelc ran ~ 5 x faster than modela, with an estimated out of sample error comparable to modela. modelc also predicted the 20 submission test cases correctly.
 
-3. I conclude that Modelc, with 18 predictors, provides a better balance of accuracy vs speed that either modela.
+3. I conclude that modelc, with 19 predictors, provides a better balance of accuracy vs speed than modela.
 
 
 --------------------------------------------------------------------------
@@ -66,17 +67,15 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
 
       cleantraining <- cleantraining[,c(2,8:60)]
       cleantesting <- cleantesting[,c(2,8:60)]
-
-
       
 ```
 
 ### Initial Random Forest Model
 
-```{r Build Model, tidy=TRUE,message=FALSE}
+```{r Build Model, tidy=FALSE,message=FALSE}
 
       require(parallel)  
-      require(doParallel)
+      require(doParallel)  ## parallel with 2 cores reduced runtime ~30%.
       mc <- makeCluster(detectCores())
       registerDoParallel(mc)
 
@@ -84,20 +83,19 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
       
 
 ## create new partition in 'training set' and create training1, testing1 set.
-## I will use training1 to create the model and testing1 to estimate out of sample error.
+
 
     set.seed(1506) ## for repeatability
-
-    trindex <- as.vector(createDataPartition(cleantraining$classe, 
-                                             p = 0.5, list = FALSE))
+    trindex <- createDataPartition(cleantraining$classe, 
+                                   p = 0.5, list = FALSE)
 
     training1 <- cleantraining[trindex,]
     testing1  <- cleantraining[-trindex,]
 
-##  Initial model with 1/2 of training set and 3 fold cross validation, 
+##  Initial model with part of training set and 3 fold cross validation, 
 ##  using the random forest method and caret's train() function. 
 ##  Afterwards, test the model with other half of training set 
-##  to estimate out of sample accuracy.
+##  to validate and estimate out of sample accuracy.
 
     controla <- trainControl(method="cv", 
                              number = 3, 
@@ -122,9 +120,11 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
 
     varImp(modela)
 
-
-##  All factor levels of user_name, except Eurico, had relative importance of less than 1. Eurico's activity differed from those of the other users: his user_name factor level had relative importance of 2.35 on the scaled varImp results, compared to 0.54 for Charles, and smaller values for other users. I conclude that user_name had minimal importance in the final model.
-
+## what about user_name? was user_name inportant?    
+    
+      head(varImp(modela)$importance,1)
+ 
+## user_name had minimal importance in the final model.
 
 ## Out of Sample Error estimate
 
@@ -134,7 +134,7 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
 
     confusionMatrix(predicta,testing1$classe)
 
-## fit is very good, accuracy 0.99, and does not seem to be overfitting on the testing1 set. I am satisfied with the model result and also believe that using the entire training set can only increase the chance of overfitting.
+## model is very good, accuracy 0.99, and does not seem to be overfitting on the testing1 set. I am satisfied with the model result and also believe that using the entire training set can only increase the chance of overfitting.
 
 ## Based on this favorable result, I use this model, 'modela', on the class testing set:
 
@@ -148,7 +148,7 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
 
 #### Initial Model comments:
 
-The random forest method, properly tuned for 3 fold cross validation and a controlled training set size, created a prediction model with 99% accuracy in an out of sample test.
+The random forest method, tuned for 3 fold cross validation and a 50% training set size, created a prediction model with 99% accuracy in an out of sample test.
 
 
 ----------------------------------------------------------------------------
@@ -159,23 +159,23 @@ The random forest method, properly tuned for 3 fold cross validation and a contr
 Here is a scatter plot of total_accel_arm and roll_belt, colored by user_name to examine the variation across users for one of the most important features in the model, roll_belt (see varImp output, above). Note: The selection of total_accel_arm for the plot was somewhat arbitrary; it isn't very important in the model but it is highly variable for each user, so the resulting plot displays the roll_belt values for better visualization of user differences. 
 
 
-```{r Plots , fig.height=8, fig.width=8}
+```{r Plots , fig.height=6, fig.width=8}
 
     qplot(total_accel_arm, roll_belt, data=training1, color = user_name)
 
-    
-
 ```
 
-Comments on the plot: Can this model be generalized to predict classe for other users not in the data set? While the plot confirms differences among users, it is not very important in the final model, as reported by varImp(). 
+Comments on the plot: Can this model be generalized to predict classe for other users not in the data set? While the plot confirms differences among users, it is not very important in the final model, as reported by varImp()$importance earlier in this report.
+
+
 
 ----------------------------------------------------------------------------
 
 ### Modelc: Reducing predictors to those with higher importance.
 
-Next, I will test an RF model with the set of predictors reduced to those with scaled importance >= 10, as reported by varImp() under modela.
+Next, I will test an RF model with the set of predictors reduced to those with scaled importance >= 10, as reported by varImp() under modela. Because user_name had low importance in modela, it will be among those removed by this method.
 
-```{r reducedimensions,tidy=TRUE}
+```{r reducedimensions,tidy=FALSE}
 
 
 ##Use VarImp to remove lowest importance variables (scaled imp less than 10.0), leaving 19 predictors.
@@ -208,11 +208,12 @@ modelc <- train(x=training2[,-20],y=training2[,20],
 
 answersc <- predict(modelc, cleantesting)
 
-answersc == answers  ## test compare predictions
+## compare modelc and modela predictions, if all match, sum=20
+sum(answersc == answers)
 
 ```
 
-modelc loses very little accuracy on test set (compared to modela) and achieves the same results on the course submission test set.  I conclude that the dimension reduction strategy was successful and reduced training time to about 10% of the time required for the original modela.
+modelc loses very little accuracy on test set (compared to modela) and achieves the same results on the course submission test set.  I conclude that the dimension reduction strategy was successful and reduced training time to about 20% of the time required for the original modela.
 
 Thank you for reading and reviewing my work.
 
