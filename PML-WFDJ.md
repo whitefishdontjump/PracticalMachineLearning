@@ -116,11 +116,11 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
                     method="rf",
                     trControl = controla)
       
-      round(Sys.time() - start1,2) # elapsed time for model1
+      round(Sys.time() - start1,2) # model1 run time
 ```
 
 ```
-## Time difference of 2.67 mins
+## Time difference of 2.74 mins
 ```
 
 ```r
@@ -141,31 +141,35 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
 ## 
 ## Resampling results across tuning parameters:
 ## 
-##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD  
-##    2    0.9546695  0.9426237  0.008263507  0.01043963
-##   29    0.9595052  0.9487639  0.011490068  0.01455429
-##   57    0.9528830  0.9403719  0.014659719  0.01858039
+##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
+##    2    0.9556882  0.9439107  0.007313014  0.009240426
+##   29    0.9589963  0.9481205  0.010735968  0.013598545
+##   57    0.9533915  0.9410131  0.015823145  0.020060580
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 29.
 ```
 
 ```r
-      confusionMatrix(model1) # out of bag error
+      model1$finalModel
 ```
 
 ```
-## Cross-Validated (3 fold) Confusion Matrix 
 ## 
-## (entries are percentages of table totals)
-##  
-##           Reference
-## Prediction    A    B    C    D    E
-##          A 28.0  0.7  0.0  0.0  0.0
-##          B  0.3 18.1  0.7  0.1  0.1
-##          C  0.1  0.5 16.5  0.7  0.3
-##          D  0.0  0.1  0.2 15.6  0.2
-##          E  0.0  0.0  0.0  0.0 17.7
+## Call:
+##  randomForest(x = x, y = y, mtry = param$mtry) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 29
+## 
+##         OOB estimate of  error rate: 2.9%
+## Confusion matrix:
+##      A   B   C   D   E class.error
+## A 1109   6   0   0   1 0.006272401
+## B   19 725  13   3   0 0.046052632
+## C    1  25 652   7   0 0.048175182
+## D    0   2  19 622   1 0.034161491
+## E    0   4   7   6 705 0.023545706
 ```
 
 ```r
@@ -204,14 +208,16 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
 
 ![](PML-WFDJ_files/figure-html/VarImpPlot-1.png) 
 
-Given model1 ~95% accuracy (confusionMatrix), I will use the varImp() results from model1 to reduce the feature set and run a second model on the 50% partition named 'trainset2'.
+The predictor user_name isn't important in this model, so my hypothesis that the user_name would be important is rejected.
+
+Given model1 high accuracy (confusionMatrix), I will use the varImp() results from model1 to reduce the feature set and run a second model on the 50% partition named 'trainset2'. I will use scaled importance value of 10 as the cut-off, which will remove user_name and many other predictors.
 
 
 ## Model 2:  Random Forest on 50% partition with reduced feature list
 
 
 ```r
-# reduce feature set
+# reduce feature set to those with imp >= 10.0
       
       importance <- varImp(model1)$importance # get varImp()
       importance$vars <- rownames(importance) 
@@ -244,11 +250,11 @@ Given model1 ~95% accuracy (confusionMatrix), I will use the varImp() results fr
                     method="rf", 
                     trControl = controla)
       
-      round(Sys.time()-start2,2) ## model2 elapsed time
+      round(Sys.time()-start2,2) ## model2 run time 
 ```
 
 ```
-## Time difference of 3.33 mins
+## Time difference of 3.43 mins
 ```
 
 ```r
@@ -270,30 +276,34 @@ Given model1 ~95% accuracy (confusionMatrix), I will use the varImp() results fr
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa      Accuracy SD   Kappa SD    
-##    2    0.9824705  0.9778250  0.0025999893  0.0032856679
-##   13    0.9805341  0.9753784  0.0006340846  0.0007939666
-##   24    0.9735018  0.9664825  0.0026002555  0.0032814745
+##    2    0.9818590  0.9770503  0.0030771252  0.0038887199
+##   13    0.9813494  0.9764084  0.0006086779  0.0007632361
+##   24    0.9724826  0.9651939  0.0031035391  0.0039204596
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 2.
 ```
 
 ```r
-      confusionMatrix(model2)
+      model2$finalModel
 ```
 
 ```
-## Cross-Validated (3 fold) Confusion Matrix 
 ## 
-## (entries are percentages of table totals)
-##  
-##           Reference
-## Prediction    A    B    C    D    E
-##          A 28.2  0.3  0.0  0.0  0.0
-##          B  0.1 18.8  0.2  0.0  0.0
-##          C  0.0  0.3 17.1  0.4  0.0
-##          D  0.0  0.0  0.1 15.9  0.1
-##          E  0.0  0.0  0.0  0.0 18.3
+## Call:
+##  randomForest(x = x, y = y, mtry = param$mtry) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 2
+## 
+##         OOB estimate of  error rate: 1.35%
+## Confusion matrix:
+##      A    B    C    D    E class.error
+## A 2781    6    0    1    2 0.003225806
+## B   20 1855   23    0    1 0.023170090
+## C    0   17 1684    9    1 0.015780245
+## D    0    1   36 1568    3 0.024875622
+## E    0    1    2    9 1792 0.006651885
 ```
 
 ```r
@@ -407,6 +417,8 @@ This appendix has:
 #            main="Yaw Belt and Pitch Belt by classe")
 ```
 
+varImp plot:
+
 
 ```r
         plot(varImp(model1), main="Ranked variable importance in model 1")
@@ -461,11 +473,11 @@ My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C700.
 ```
 
 ```r
-      round(Sys.time() - startknit,2)  ## time to knit from first chunk to last
+      round(Sys.time() - startknit,2)  ## time  to knit all chunks
 ```
 
 ```
-## Time difference of 6.37 mins
+## Time difference of 6.6 mins
 ```
 
 ---

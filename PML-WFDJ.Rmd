@@ -158,11 +158,11 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
                     method="rf",
                     trControl = controla)
       
-      round(Sys.time() - start1,2) # elapsed time for model1
+      round(Sys.time() - start1,2) # model1 run time
       
       model1
-
-      confusionMatrix(model1) # out of bag error
+      
+      model1$finalModel
 
       varImp(model1)
       
@@ -177,14 +177,16 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
 
 ```
 
-Given model1 ~95% accuracy (confusionMatrix), I will use the varImp() results from model1 to reduce the feature set and run a second model on the 50% partition named 'trainset2'.
+The predictor user_name isn't important in this model, so my hypothesis that the user_name would be important is rejected.
+
+Given model1 high accuracy (confusionMatrix), I will use the varImp() results from model1 to reduce the feature set and run a second model on the 50% partition named 'trainset2'. I will use scaled importance value of 10 as the cut-off, which will remove user_name and many other predictors.
 
 
 ## Model 2:  Random Forest on 50% partition with reduced feature list
 
 ```{r model2,message=FALSE}
       
-# reduce feature set
+# reduce feature set to those with imp >= 10.0
       
       importance <- varImp(model1)$importance # get varImp()
       importance$vars <- rownames(importance) 
@@ -204,11 +206,11 @@ Given model1 ~95% accuracy (confusionMatrix), I will use the varImp() results fr
                     method="rf", 
                     trControl = controla)
       
-      round(Sys.time()-start2,2) ## model2 elapsed time
+      round(Sys.time()-start2,2) ## model2 run time 
       
       model2
       
-      confusionMatrix(model2)
+      model2$finalModel
       
 # validation of model 2 on balance of data
       
@@ -248,6 +250,8 @@ This appendix has:
 
 ```
 
+varImp plot:
+
 ```{r plotcodeonly2,ref.label="VarImpPlot", eval=FALSE}
 
 ```
@@ -261,7 +265,7 @@ My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C700.
 
       sessionInfo()  
       
-      round(Sys.time() - startknit,2)  ## time to knit from first chunk to last
+      round(Sys.time() - startknit,2)  ## time  to knit all chunks
       
 ```
 
