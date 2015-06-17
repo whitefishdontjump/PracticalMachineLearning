@@ -253,6 +253,8 @@ This appendix has:
 ```
 
 
+## Session Info and Elapsed Time
+
 My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C700.
 
 ```{r config}

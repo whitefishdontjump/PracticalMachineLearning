@@ -120,7 +120,7 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
 ```
 
 ```
-## Time difference of 2.8 mins
+## Time difference of 2.67 mins
 ```
 
 ```r
@@ -142,9 +142,9 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD  
-##    2    0.9526319  0.9400316  0.008006074  0.01013432
-##   29    0.9592506  0.9484407  0.011524850  0.01459978
-##   57    0.9549200  0.9429561  0.014790352  0.01874172
+##    2    0.9546695  0.9426237  0.008263507  0.01043963
+##   29    0.9595052  0.9487639  0.011490068  0.01455429
+##   57    0.9528830  0.9403719  0.014659719  0.01858039
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 29.
@@ -162,9 +162,9 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
 ##           Reference
 ## Prediction    A    B    C    D    E
 ##          A 28.0  0.7  0.0  0.0  0.0
-##          B  0.3 18.1  0.6  0.1  0.1
-##          C  0.2  0.5 16.6  0.7  0.3
-##          D  0.0  0.0  0.2 15.6  0.2
+##          B  0.3 18.1  0.7  0.1  0.1
+##          C  0.1  0.5 16.5  0.7  0.3
+##          D  0.0  0.1  0.2 15.6  0.2
 ##          E  0.0  0.0  0.0  0.0 17.7
 ```
 
@@ -270,9 +270,9 @@ Given model1 ~95% accuracy (confusionMatrix), I will use the varImp() results fr
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa      Accuracy SD   Kappa SD    
-##    2    0.9818591  0.9770506  0.0013760842  0.0017326211
-##   13    0.9806360  0.9755077  0.0007667294  0.0009659629
-##   24    0.9743173  0.9675137  0.0023858133  0.0030105835
+##    2    0.9824705  0.9778250  0.0025999893  0.0032856679
+##   13    0.9805341  0.9753784  0.0006340846  0.0007939666
+##   24    0.9735018  0.9664825  0.0026002555  0.0032814745
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 2.
@@ -289,11 +289,11 @@ Given model1 ~95% accuracy (confusionMatrix), I will use the varImp() results fr
 ##  
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 28.2  0.4  0.0  0.0  0.0
-##          B  0.1 18.7  0.2  0.0  0.0
+##          A 28.2  0.3  0.0  0.0  0.0
+##          B  0.1 18.8  0.2  0.0  0.0
 ##          C  0.0  0.3 17.1  0.4  0.0
 ##          D  0.0  0.0  0.1 15.9  0.1
-##          E  0.0  0.0  0.0  0.0 18.2
+##          E  0.0  0.0  0.0  0.0 18.3
 ```
 
 ```r
@@ -413,6 +413,8 @@ This appendix has:
 ```
 
 
+## Session Info and Elapsed Time
+
 My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C700.
 
 
@@ -463,7 +465,7 @@ My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C700.
 ```
 
 ```
-## Time difference of 6.5 mins
+## Time difference of 6.37 mins
 ```
 
 ---

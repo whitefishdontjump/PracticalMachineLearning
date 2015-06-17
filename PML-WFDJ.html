@@ -94,6 +94,7 @@ img {
 </ul></li>
 <li><a href="#appendix">Appendix</a><ul>
 <li><a href="#plot-code">Plot Code</a></li>
+<li><a href="#session-info-and-elapsed-time">Session Info and Elapsed Time</a></li>
 </ul></li>
 </ul>
 </div>
@@ -193,7 +194,7 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
                     <span class="dt">trControl =</span> controla)
       
       <span class="kw">round</span>(<span class="kw">Sys.time</span>() -<span class="st"> </span>start1,<span class="dv">2</span>) <span class="co"># elapsed time for model1</span></code></pre>
-<pre><code>## Time difference of 2.8 mins</code></pre>
+<pre><code>## Time difference of 2.67 mins</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">      model1</code></pre>
 <pre><code>## Random Forest 
 ## 
@@ -209,9 +210,9 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD  
-##    2    0.9526319  0.9400316  0.008006074  0.01013432
-##   29    0.9592506  0.9484407  0.011524850  0.01459978
-##   57    0.9549200  0.9429561  0.014790352  0.01874172
+##    2    0.9546695  0.9426237  0.008263507  0.01043963
+##   29    0.9595052  0.9487639  0.011490068  0.01455429
+##   57    0.9528830  0.9403719  0.014659719  0.01858039
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 29.</code></pre>
@@ -223,9 +224,9 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 ##           Reference
 ## Prediction    A    B    C    D    E
 ##          A 28.0  0.7  0.0  0.0  0.0
-##          B  0.3 18.1  0.6  0.1  0.1
-##          C  0.2  0.5 16.6  0.7  0.3
-##          D  0.0  0.0  0.2 15.6  0.2
+##          B  0.3 18.1  0.7  0.1  0.1
+##          C  0.1  0.5 16.5  0.7  0.3
+##          D  0.0  0.1  0.2 15.6  0.2
 ##          E  0.0  0.0  0.0  0.0 17.7</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">      <span class="kw">varImp</span>(model1)</code></pre>
 <pre><code>## rf variable importance
@@ -302,9 +303,9 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa      Accuracy SD   Kappa SD    
-##    2    0.9818591  0.9770506  0.0013760842  0.0017326211
-##   13    0.9806360  0.9755077  0.0007667294  0.0009659629
-##   24    0.9743173  0.9675137  0.0023858133  0.0030105835
+##    2    0.9824705  0.9778250  0.0025999893  0.0032856679
+##   13    0.9805341  0.9753784  0.0006340846  0.0007939666
+##   24    0.9735018  0.9664825  0.0026002555  0.0032814745
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 2.</code></pre>
@@ -315,11 +316,11 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 ##  
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 28.2  0.4  0.0  0.0  0.0
-##          B  0.1 18.7  0.2  0.0  0.0
+##          A 28.2  0.3  0.0  0.0  0.0
+##          B  0.1 18.8  0.2  0.0  0.0
 ##          C  0.0  0.3 17.1  0.4  0.0
 ##          D  0.0  0.0  0.1 15.9  0.1
-##          E  0.0  0.0  0.0  0.0 18.2</code></pre>
+##          E  0.0  0.0  0.0  0.0 18.3</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># validation of model 2 on balance of data</span>
       
       validate &lt;-<span class="st"> </span><span class="kw">predict</span>(model2,validset)
@@ -410,6 +411,9 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 <span class="co">#      qplot(yaw_belt,pitch_belt, data=cleanData, color = classe,</span>
 <span class="co">#            main=&quot;Yaw Belt and Pitch Belt by classe&quot;)</span></code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">        <span class="kw">plot</span>(<span class="kw">varImp</span>(model1), <span class="dt">main=</span><span class="st">&quot;Ranked variable importance in model 1&quot;</span>)</code></pre>
+</div>
+<div id="session-info-and-elapsed-time" class="section level2">
+<h2>Session Info and Elapsed Time</h2>
 <p>My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C700.</p>
 <pre class="sourceCode r"><code class="sourceCode r">      <span class="kw">sessionInfo</span>()  </code></pre>
 <pre><code>## R version 3.2.0 (2015-04-16)
@@ -448,7 +452,7 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 ## [37] colorspace_1.2-6    quantreg_5.11       labeling_0.3       
 ## [40] stringi_0.4-1       munsell_0.4.2</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">      <span class="kw">round</span>(<span class="kw">Sys.time</span>() -<span class="st"> </span>startknit,<span class="dv">2</span>)  ## time to knit from first chunk to last</code></pre>
-<pre><code>## Time difference of 6.5 mins</code></pre>
+<pre><code>## Time difference of 6.37 mins</code></pre>
 <hr />
 <p>end of report. Thank you for your review and feedback.</p>
 </div>
