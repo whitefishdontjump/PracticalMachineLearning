@@ -15,17 +15,17 @@ The objective is to predict 'classe', a factor with 5 levels, from the reference
 
 1. Initial cleaning:  Clean data, removing various flavors of NA and columns containing values that are not relevant to current project to correctly predict classe variable.
 
-2. Initial rough model on 20% of 'training' set, using randomForest() with 3-fold cross-validation, with chief purpose to determine relative importance of features.
+2. Determining variable importance: Initial rough model on 20% of 'training' set, using randomForest() with 3-fold cross-validation, with chief purpose to determine relative importance of features.
 
 3. Second model: use a reduced set of predictors, based on varImp(), applying randomForest with 3-fold CV to 50% of data. Examine results and initial "out of bag" errors.
 
-4. Perform additional validation by predicting and evaluating second model accuracy against remaining 30% of data from 'training' set.
+4. Perform additional validation by predicting and evaluating the second model accuracy against remaining 30% of data from 'training' set.
 
 5. Predict 20 cases for the submission portion of project and report results.
 
 
 ***Summary Results***
-The second model, a 24 predictor Random Forest, achieved 99% accuracy on an out of sample test and scored 20 of 20 correct on the course submission test.
+The second model, a 24 predictor Random Forest, validated with 3-fold cross validation, and an estimated out of sample error of ~1%, achieved 99% accuracy on an additional out of sample test. It also scored 20 of 20 correct on the course submission test.
 
 # Data Cleaning & Exploration
 
@@ -120,7 +120,7 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
 ```
 
 ```
-## Time difference of 2.74 mins
+## Time difference of 2.76 mins
 ```
 
 ```r
@@ -142,9 +142,9 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
-##    2    0.9556882  0.9439107  0.007313014  0.009240426
-##   29    0.9589963  0.9481205  0.010735968  0.013598545
-##   57    0.9533915  0.9410131  0.015823145  0.020060580
+##    2    0.9549253  0.9429393  0.005372393  0.006783223
+##   29    0.9582324  0.9471544  0.010872746  0.013776800
+##   57    0.9531371  0.9406946  0.016068859  0.020366204
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 29.
@@ -254,7 +254,7 @@ Given model1 high accuracy (confusionMatrix), I will use the varImp() results fr
 ```
 
 ```
-## Time difference of 3.43 mins
+## Time difference of 3.42 mins
 ```
 
 ```r
@@ -275,10 +275,10 @@ Given model1 high accuracy (confusionMatrix), I will use the varImp() results fr
 ## 
 ## Resampling results across tuning parameters:
 ## 
-##   mtry  Accuracy   Kappa      Accuracy SD   Kappa SD    
-##    2    0.9818590  0.9770503  0.0030771252  0.0038887199
-##   13    0.9813494  0.9764084  0.0006086779  0.0007632361
-##   24    0.9724826  0.9651939  0.0031035391  0.0039204596
+##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
+##    2    0.9822666  0.9775652  0.002140021  0.002703405
+##   13    0.9811456  0.9761519  0.001070813  0.001349607
+##   24    0.9737058  0.9667389  0.003524372  0.004453301
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 2.
@@ -477,7 +477,7 @@ My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C700.
 ```
 
 ```
-## Time difference of 6.6 mins
+## Time difference of 6.56 mins
 ```
 
 ---

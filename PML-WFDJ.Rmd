@@ -23,17 +23,17 @@ The objective is to predict 'classe', a factor with 5 levels, from the reference
 
 1. Initial cleaning:  Clean data, removing various flavors of NA and columns containing values that are not relevant to current project to correctly predict classe variable.
 
-2. Initial rough model on 20% of 'training' set, using randomForest() with 3-fold cross-validation, with chief purpose to determine relative importance of features.
+2. Determining variable importance: Initial rough model on 20% of 'training' set, using randomForest() with 3-fold cross-validation, with chief purpose to determine relative importance of features.
 
 3. Second model: use a reduced set of predictors, based on varImp(), applying randomForest with 3-fold CV to 50% of data. Examine results and initial "out of bag" errors.
 
-4. Perform additional validation by predicting and evaluating second model accuracy against remaining 30% of data from 'training' set.
+4. Perform additional validation by predicting and evaluating the second model accuracy against remaining 30% of data from 'training' set.
 
 5. Predict 20 cases for the submission portion of project and report results.
 
 
 ***Summary Results***
-The second model, a 24 predictor Random Forest, achieved 99% accuracy on an out of sample test and scored 20 of 20 correct on the course submission test.
+The second model, a 24 predictor Random Forest, validated with 3-fold cross validation, and an estimated out of sample error of ~1%, achieved 99% accuracy on an additional out of sample test. It also scored 20 of 20 correct on the course submission test.
 
 # Data Cleaning & Exploration
 

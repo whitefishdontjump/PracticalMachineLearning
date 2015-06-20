@@ -107,12 +107,12 @@ img {
 <p>The objective is to predict ‘classe’, a factor with 5 levels, from the reference data. The data from JHU/Coursers course is contained in a file ‘training.csv’, that will be used for building, validating and testing models. The second file ‘testing.csv’ lacks any classe values and will only be used for the submission test on coursera.</p>
 <ol style="list-style-type: decimal">
 <li><p>Initial cleaning: Clean data, removing various flavors of NA and columns containing values that are not relevant to current project to correctly predict classe variable.</p></li>
-<li><p>Initial rough model on 20% of ‘training’ set, using randomForest() with 3-fold cross-validation, with chief purpose to determine relative importance of features.</p></li>
+<li><p>Determining variable importance: Initial rough model on 20% of ‘training’ set, using randomForest() with 3-fold cross-validation, with chief purpose to determine relative importance of features.</p></li>
 <li><p>Second model: use a reduced set of predictors, based on varImp(), applying randomForest with 3-fold CV to 50% of data. Examine results and initial “out of bag” errors.</p></li>
-<li><p>Perform additional validation by predicting and evaluating second model accuracy against remaining 30% of data from ‘training’ set.</p></li>
+<li><p>Perform additional validation by predicting and evaluating the second model accuracy against remaining 30% of data from ‘training’ set.</p></li>
 <li><p>Predict 20 cases for the submission portion of project and report results.</p></li>
 </ol>
-<p><strong><em>Summary Results</em></strong> The second model, a 24 predictor Random Forest, achieved 99% accuracy on an out of sample test and scored 20 of 20 correct on the course submission test.</p>
+<p><strong><em>Summary Results</em></strong> The second model, a 24 predictor Random Forest, validated with 3-fold cross validation, and an estimated out of sample error of ~1%, achieved 99% accuracy on an additional out of sample test. It also scored 20 of 20 correct on the course submission test.</p>
 </div>
 <div id="data-cleaning-exploration" class="section level1">
 <h1>Data Cleaning &amp; Exploration</h1>
@@ -194,7 +194,7 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
                     <span class="dt">trControl =</span> controla)
       
       <span class="kw">round</span>(<span class="kw">Sys.time</span>() -<span class="st"> </span>start1,<span class="dv">2</span>) <span class="co"># model1 run time</span></code></pre>
-<pre><code>## Time difference of 2.74 mins</code></pre>
+<pre><code>## Time difference of 2.76 mins</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">      model1</code></pre>
 <pre><code>## Random Forest 
 ## 
@@ -210,9 +210,9 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
-##    2    0.9556882  0.9439107  0.007313014  0.009240426
-##   29    0.9589963  0.9481205  0.010735968  0.013598545
-##   57    0.9533915  0.9410131  0.015823145  0.020060580
+##    2    0.9549253  0.9429393  0.005372393  0.006783223
+##   29    0.9582324  0.9471544  0.010872746  0.013776800
+##   57    0.9531371  0.9406946  0.016068859  0.020366204
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 29.</code></pre>
@@ -292,7 +292,7 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
                     <span class="dt">trControl =</span> controla)
       
       <span class="kw">round</span>(<span class="kw">Sys.time</span>()-start2,<span class="dv">2</span>) ## model2 run time </code></pre>
-<pre><code>## Time difference of 3.43 mins</code></pre>
+<pre><code>## Time difference of 3.42 mins</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">      model2</code></pre>
 <pre><code>## Random Forest 
 ## 
@@ -307,10 +307,10 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 ## 
 ## Resampling results across tuning parameters:
 ## 
-##   mtry  Accuracy   Kappa      Accuracy SD   Kappa SD    
-##    2    0.9818590  0.9770503  0.0030771252  0.0038887199
-##   13    0.9813494  0.9764084  0.0006086779  0.0007632361
-##   24    0.9724826  0.9651939  0.0031035391  0.0039204596
+##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
+##    2    0.9822666  0.9775652  0.002140021  0.002703405
+##   13    0.9811456  0.9761519  0.001070813  0.001349607
+##   24    0.9737058  0.9667389  0.003524372  0.004453301
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 2.</code></pre>
@@ -462,7 +462,7 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 ## [37] colorspace_1.2-6    quantreg_5.11       labeling_0.3       
 ## [40] stringi_0.4-1       munsell_0.4.2</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">      <span class="kw">round</span>(<span class="kw">Sys.time</span>() -<span class="st"> </span>startknit,<span class="dv">2</span>)  ## time  to knit all chunks</code></pre>
-<pre><code>## Time difference of 6.6 mins</code></pre>
+<pre><code>## Time difference of 6.56 mins</code></pre>
 <hr />
 <p>end of report. Thank you for your review and feedback.</p>
 </div>
