@@ -89,12 +89,13 @@ img {
 <li><a href="#modeling">Modeling</a><ul>
 <li><a href="#pre-modeling-partitions-and-train-control">Pre-modeling (partitions and train control)</a></li>
 <li><a href="#initial-random-forest-model-all-predictors-20-of-observations">Initial Random Forest Model, all predictors, 20% of observations</a></li>
-<li><a href="#model-2-random-forest-on-50-partition-with-reduced-feature-list">Model 2: Random Forest on 50% partition with reduced feature list</a></li>
+<li><a href="#model-2-random-forest-on-50-partition-with-reduced-feature-set">Model 2: Random Forest on 50% partition with reduced feature set</a></li>
 <li><a href="#submission-test">Submission Test</a></li>
 </ul></li>
 <li><a href="#appendix">Appendix</a><ul>
 <li><a href="#plot-code">Plot Code</a></li>
-<li><a href="#session-info-and-elapsed-time">Session Info and Elapsed Time</a></li>
+<li><a href="#session-info">Session Info</a></li>
+<li><a href="#elapsed-time-to-knit-all-chunks">Elapsed Time to knit all chunks</a></li>
 </ul></li>
 </ul>
 </div>
@@ -104,7 +105,7 @@ img {
 <p>Read more: <a href="http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP" class="uri">http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP</a></p>
 <div id="summary" class="section level1">
 <h1>Summary</h1>
-<p>The objective is to predict ‘classe’, a factor with 5 levels, from the reference data. The data from JHU/Coursers course is contained in a file ‘training.csv’, that will be used for building, validating and testing models. The second file ‘testing.csv’ lacks any classe values and will only be used for the submission test on coursera.</p>
+<p>The objective is to predict ‘classe’, a factor with 5 levels, from the reference data. The data from JHU/Coursera course is contained in a file ‘training.csv’, that will be used for building, validating and testing models. The second file ‘testing.csv’ lacks any classe values and will only be used for the submission test on coursera.</p>
 <ol style="list-style-type: decimal">
 <li><p>Initial cleaning: Clean data, removing various flavors of NA and columns containing values that are not relevant to current project to correctly predict classe variable.</p></li>
 <li><p>Determining variable importance: Initial rough model on 20% of ‘training’ set, using randomForest() with 3-fold cross-validation, with chief purpose to determine relative importance of features.</p></li>
@@ -112,38 +113,37 @@ img {
 <li><p>Perform additional validation by predicting and evaluating the second model accuracy against remaining 30% of data from ‘training’ set.</p></li>
 <li><p>Predict 20 cases for the submission portion of project and report results.</p></li>
 </ol>
+<p>Note: I recorded and report the system time required to run each model, and the time to process all the code chunks in this report. Both my hardware and software configuration are also reported for reference.</p>
 <p><strong><em>Summary Results</em></strong> The second model, a 24 predictor Random Forest, validated with 3-fold cross validation, and an estimated out of sample error of ~1%, achieved 99% accuracy on an additional out of sample test. It also scored 20 of 20 correct on the course submission test.</p>
 </div>
 <div id="data-cleaning-exploration" class="section level1">
 <h1>Data Cleaning &amp; Exploration</h1>
 <div id="data-cleaning" class="section level2">
 <h2>Data Cleaning</h2>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># To measure the time efficiency of the knitting and modeling, there are six</span>
-<span class="co"># points in the code where I use Sys.time() to quickly capture a time stamp.</span>
-<span class="co"># This is done for the total time from this chunk to the last chunk, as well</span>
-<span class="co"># as for each model.</span>
+<pre class="sourceCode r"><code class="sourceCode r">      startknit &lt;-<span class="st"> </span><span class="kw">Sys.time</span>()  ## start time, see end of report total time
 
-startknit &lt;-<span class="st"> </span><span class="kw">Sys.time</span>()  ## start time, see end of report total time
+      sourceData &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;pml-training.csv&quot;</span>, 
+                         <span class="dt">na.strings =</span> <span class="kw">c</span>(<span class="st">&quot;NA&quot;</span>, <span class="st">&quot;&quot;</span>, <span class="st">&quot;#DIV/0!&quot;</span>))
 
-sourceData &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;pml-training.csv&quot;</span>, <span class="dt">na.strings =</span> <span class="kw">c</span>(<span class="st">&quot;NA&quot;</span>, <span class="st">&quot;&quot;</span>, <span class="st">&quot;#DIV/0!&quot;</span>))
-
-submitTestSet &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;pml-testing.csv&quot;</span>, <span class="dt">na.strings =</span> <span class="kw">c</span>(<span class="st">&quot;NA&quot;</span>, <span class="st">&quot;&quot;</span>, <span class="st">&quot;#DIV/0!&quot;</span>))
-<span class="co"># View(sourceData)</span>
-
+      submitTestSet &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;pml-testing.csv&quot;</span>, 
+                        <span class="dt">na.strings =</span> <span class="kw">c</span>(<span class="st">&quot;NA&quot;</span>, <span class="st">&quot;&quot;</span>, <span class="st">&quot;#DIV/0!&quot;</span>))
+      <span class="co"># View(sourceData)</span>
+      
 <span class="co"># remove NA columns both sets</span>
-cols2get &lt;-<span class="st"> </span><span class="kw">colSums</span>(<span class="kw">is.na</span>(sourceData)) ==<span class="st"> </span><span class="dv">0</span>
-cols2get2 &lt;-<span class="st"> </span><span class="kw">colSums</span>(<span class="kw">is.na</span>(submitTestSet)) ==<span class="st"> </span><span class="dv">0</span>
-cleanData &lt;-<span class="st"> </span>sourceData[, cols2get]
-cleanSubmit &lt;-<span class="st"> </span>submitTestSet[, cols2get2]
+      cols2get &lt;-<span class="st"> </span><span class="kw">colSums</span>(<span class="kw">is.na</span>(sourceData))==<span class="dv">0</span>
+      cols2get2 &lt;-<span class="st"> </span><span class="kw">colSums</span>(<span class="kw">is.na</span>(submitTestSet))==<span class="dv">0</span>
+      cleanData &lt;-<span class="st"> </span>sourceData[, cols2get]
+      cleanSubmit &lt;-<span class="st"> </span>submitTestSet[,cols2get2]
+      
+      ## View(cleanData)
 
-## View(cleanData)
-
-<span class="co"># remove row 'X', as well as time date window columns which are not related</span>
-<span class="co"># to prediction of 'classe'. will leave 'user_name' in the set - it may or</span>
-<span class="co"># may not be relevant/important in the model.</span>
-
-cleanData &lt;-<span class="st"> </span>cleanData[, <span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">8</span>:<span class="dv">60</span>)]
-cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">8</span>:<span class="dv">60</span>)]</code></pre>
+<span class="co"># remove row &quot;X&quot;, as well as time date window columns which </span>
+<span class="co"># are not related to prediction of 'classe'. I will keep </span>
+<span class="co"># 'user_name' in the set - it may or may not be important </span>
+<span class="co"># in the model response.</span>
+      
+      cleanData &lt;-<span class="st"> </span>cleanData[,<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">8</span>:<span class="dv">60</span>)]
+      cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[,<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">8</span>:<span class="dv">60</span>)]</code></pre>
 </div>
 <div id="data-exploration" class="section level2">
 <h2>Data Exploration</h2>
@@ -156,14 +156,19 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 <h1>Modeling</h1>
 <div id="pre-modeling-partitions-and-train-control" class="section level2">
 <h2>Pre-modeling (partitions and train control)</h2>
-<pre class="sourceCode r"><code class="sourceCode r">      <span class="kw">require</span>(parallel)  
-      <span class="kw">require</span>(doParallel)  <span class="co"># parallel with 2 cores reduced runtime ~30%.</span>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># doParallel with 2 cores reduced runtime ~30%.      </span>
+      <span class="kw">require</span>(parallel)  
+      <span class="kw">require</span>(doParallel)  
       mc &lt;-<span class="st"> </span><span class="kw">makeCluster</span>(<span class="kw">detectCores</span>())
       <span class="kw">registerDoParallel</span>(mc)
 
+      
       <span class="kw">require</span>(caret)
       
-<span class="co"># create 3 data partitions: 20% initial model(trainset1), 50% second model(trainset2), 30% validation(validset)</span>
+<span class="co"># create 3 data partitions: </span>
+<span class="co">#     20% initial model(trainset1) </span>
+<span class="co">#     50% second model(trainset2)</span>
+<span class="co">#     30% validation(validset)</span>
       
       <span class="kw">set.seed</span>(<span class="dv">616</span>) <span class="co"># for repeatability</span>
       
@@ -194,7 +199,7 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
                     <span class="dt">trControl =</span> controla)
       
       <span class="kw">round</span>(<span class="kw">Sys.time</span>() -<span class="st"> </span>start1,<span class="dv">2</span>) <span class="co"># model1 run time</span></code></pre>
-<pre><code>## Time difference of 2.76 mins</code></pre>
+<pre><code>## Time difference of 2.64 mins</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">      model1</code></pre>
 <pre><code>## Random Forest 
 ## 
@@ -209,10 +214,10 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 ## 
 ## Resampling results across tuning parameters:
 ## 
-##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
-##    2    0.9549253  0.9429393  0.005372393  0.006783223
-##   29    0.9582324  0.9471544  0.010872746  0.013776800
-##   57    0.9531371  0.9406946  0.016068859  0.020366204
+##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD  
+##    2    0.9536501  0.9413278  0.009077960  0.01148049
+##   29    0.9597607  0.9490789  0.009972136  0.01263311
+##   57    0.9533921  0.9410099  0.015487617  0.01963776
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 29.</code></pre>
@@ -262,8 +267,8 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 <p>The predictor user_name isn’t important in this model, so my hypothesis that the user_name would be important is rejected.</p>
 <p>Given model1 high accuracy (confusionMatrix), I will use the varImp() results from model1 to reduce the feature set and run a second model on the 50% partition named ‘trainset2’. I will use scaled importance value of 10 as the cut-off, which will remove user_name and many other predictors.</p>
 </div>
-<div id="model-2-random-forest-on-50-partition-with-reduced-feature-list" class="section level2">
-<h2>Model 2: Random Forest on 50% partition with reduced feature list</h2>
+<div id="model-2-random-forest-on-50-partition-with-reduced-feature-set" class="section level2">
+<h2>Model 2: Random Forest on 50% partition with reduced feature set</h2>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># reduce feature set to those with imp &gt;= 10.0</span>
       
       importance &lt;-<span class="st"> </span><span class="kw">varImp</span>(model1)$importance <span class="co"># get varImp()</span>
@@ -291,8 +296,8 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
                     <span class="dt">method=</span><span class="st">&quot;rf&quot;</span>, 
                     <span class="dt">trControl =</span> controla)
       
-      <span class="kw">round</span>(<span class="kw">Sys.time</span>()-start2,<span class="dv">2</span>) ## model2 run time </code></pre>
-<pre><code>## Time difference of 3.42 mins</code></pre>
+      <span class="kw">round</span>(<span class="kw">Sys.time</span>()-start2,<span class="dv">2</span>) <span class="co"># model2 run time </span></code></pre>
+<pre><code>## Time difference of 3.3 mins</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">      model2</code></pre>
 <pre><code>## Random Forest 
 ## 
@@ -308,9 +313,9 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
-##    2    0.9822666  0.9775652  0.002140021  0.002703405
-##   13    0.9811456  0.9761519  0.001070813  0.001349607
-##   24    0.9737058  0.9667389  0.003524372  0.004453301
+##    2    0.9818591  0.9770501  0.001789438  0.002256436
+##   13    0.9809418  0.9758931  0.001071026  0.001350518
+##   24    0.9743172  0.9675136  0.002611596  0.003296451
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 2.</code></pre>
@@ -373,7 +378,7 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
       answer20</code></pre>
 <pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
 ## Levels: A B C D E</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># the results were submitted via Coursera web and scored 20 of 20 correct.</span></code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># results were submitted and scored 20 of 20 correct.</span></code></pre>
 </div>
 </div>
 <div id="appendix" class="section level1">
@@ -387,7 +392,6 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 <div id="plot-code" class="section level2">
 <h2>Plot Code</h2>
 <pre class="sourceCode r"><code class="sourceCode r">      <span class="kw">require</span>(ggplot2)
-
       <span class="kw">qplot</span>(roll_belt,pitch_belt, <span class="dt">data=</span>cleanData, <span class="dt">color =</span> user_name,
             <span class="dt">main=</span><span class="st">&quot;Plot1: Roll Belt and Pitch Belt by user_name&quot;</span>)
 
@@ -399,43 +403,30 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
       
       <span class="kw">qplot</span>(pitch_arm,yaw_arm, <span class="dt">data=</span>cleanData, <span class="dt">color =</span> classe,
             <span class="dt">main=</span><span class="st">&quot;Plot 4: Yaw Arm and Pitch Arm by classe&quot;</span>)
-      
-      
 
-<span class="co"># the following plots were not run for the report</span>
-
+<span class="co"># the following plots were not shown for the report</span>
+<span class="co">#      boxplot(cleanData)</span>
 <span class="co">#      boxplot(roll_belt~classe,data=cleanData, main=&quot;Roll Belt by Classe&quot;)</span>
 <span class="co">#      boxplot(pitch_belt~classe,data=cleanData, main=&quot;Pitch Belt by Classe&quot;)</span>
 <span class="co">#      boxplot(yaw_belt~classe,data=cleanData, main=&quot;Yaw Belt by Classe&quot;)</span>
-                  
 <span class="co">#      qplot(yaw_arm,roll_arm, data=cleanData, color = classe,</span>
 <span class="co">#            main=&quot;Roll Arm and Yaw Arm by classe&quot;)</span>
-         
 <span class="co">#      qplot(roll_belt,pitch_belt, data=cleanData, color = classe,</span>
 <span class="co">#           main=&quot;Roll and Pitch Belt by classe&quot;)</span>
-      
 <span class="co">#      qplot(roll_belt,yaw_belt, data=cleanData, color = classe,</span>
 <span class="co">#            main=&quot;Roll and Yaw Belt by classe&quot;)</span>
-      
 <span class="co">#      qplot(yaw_belt,pitch_belt, data=cleanData, color = classe,</span>
 <span class="co">#            main=&quot;Yaw Belt and Pitch Belt by classe&quot;)</span></code></pre>
-<p>varImp plot:</p>
+<p>Variable Importance plot:</p>
 <pre class="sourceCode r"><code class="sourceCode r">        <span class="kw">plot</span>(<span class="kw">varImp</span>(model1), <span class="dt">main=</span><span class="st">&quot;Ranked variable importance in model 1&quot;</span>)</code></pre>
 </div>
-<div id="session-info-and-elapsed-time" class="section level2">
-<h2>Session Info and Elapsed Time</h2>
-<p>My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C700.</p>
-<pre class="sourceCode r"><code class="sourceCode r">      <span class="kw">sessionInfo</span>()  </code></pre>
+<div id="session-info" class="section level2">
+<h2>Session Info</h2>
+<p>My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C770US.</p>
+<pre class="sourceCode r"><code class="sourceCode r">      <span class="kw">print</span>(<span class="kw">sessionInfo</span>(),<span class="dt">locale=</span><span class="ot">FALSE</span>)  </code></pre>
 <pre><code>## R version 3.2.0 (2015-04-16)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
 ## Running under: Windows 7 x64 (build 7601) Service Pack 1
-## 
-## locale:
-## [1] LC_COLLATE=English_United States.1252 
-## [2] LC_CTYPE=English_United States.1252   
-## [3] LC_MONETARY=English_United States.1252
-## [4] LC_NUMERIC=C                          
-## [5] LC_TIME=English_United States.1252    
 ## 
 ## attached base packages:
 ## [1] parallel  stats     graphics  grDevices utils     datasets  methods  
@@ -461,8 +452,11 @@ cleanSubmit &lt;-<span class="st"> </span>cleanSubmit[, <span class="kw">c</span
 ## [34] MASS_7.3-40         splines_3.2.0       pbkrtest_0.4-2     
 ## [37] colorspace_1.2-6    quantreg_5.11       labeling_0.3       
 ## [40] stringi_0.4-1       munsell_0.4.2</code></pre>
+</div>
+<div id="elapsed-time-to-knit-all-chunks" class="section level2">
+<h2>Elapsed Time to knit all chunks</h2>
 <pre class="sourceCode r"><code class="sourceCode r">      <span class="kw">round</span>(<span class="kw">Sys.time</span>() -<span class="st"> </span>startknit,<span class="dv">2</span>)  ## time  to knit all chunks</code></pre>
-<pre><code>## Time difference of 6.56 mins</code></pre>
+<pre><code>## Time difference of 6.31 mins</code></pre>
 <hr />
 <p>end of report. Thank you for your review and feedback.</p>
 </div>

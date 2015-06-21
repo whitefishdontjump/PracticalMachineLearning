@@ -11,7 +11,7 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3MCvfqKcP
 
 # Summary
 
-The objective is to predict 'classe', a factor with 5 levels, from the reference data.  The data from JHU/Coursers course is contained in a file 'training.csv', that will be used for building, validating and testing models. The second file 'testing.csv' lacks any classe values and will only be used for the submission test on coursera.
+The objective is to predict 'classe', a factor with 5 levels, from the reference data.  The data from JHU/Coursera course is contained in a file 'training.csv', that will be used for building, validating and testing models. The second file 'testing.csv' lacks any classe values and will only be used for the submission test on coursera.
 
 1. Initial cleaning:  Clean data, removing various flavors of NA and columns containing values that are not relevant to current project to correctly predict classe variable.
 
@@ -23,9 +23,11 @@ The objective is to predict 'classe', a factor with 5 levels, from the reference
 
 5. Predict 20 cases for the submission portion of project and report results.
 
+Note: I recorded and report the system time required to run each model, and the time to process all the code chunks in this report. Both my hardware and software configuration are also reported for reference.
+
 
 ***Summary Results***
-The second model, a 24 predictor Random Forest, validated with 3-fold cross validation, and an estimated out of sample error of ~1%, achieved 99% accuracy on an additional out of sample test. It also scored 20 of 20 correct on the course submission test.
+The second model, a 24 predictor Random Forest, validated with 3-fold cross validation, and an estimated out of sample error of ~1%, achieved 99% accuracy on an additional out of sample test. It also scored 20 of 20 correct on the course submission test. 
 
 # Data Cleaning & Exploration
 
@@ -33,32 +35,30 @@ The second model, a 24 predictor Random Forest, validated with 3-fold cross vali
 
 
 ```r
-# To measure the time efficiency of the knitting and modeling, there are six
-# points in the code where I use Sys.time() to quickly capture a time stamp.
-# This is done for the total time from this chunk to the last chunk, as well
-# as for each model.
+      startknit <- Sys.time()  ## start time, see end of report total time
 
-startknit <- Sys.time()  ## start time, see end of report total time
+      sourceData <- read.csv("pml-training.csv", 
+                         na.strings = c("NA", "", "#DIV/0!"))
 
-sourceData <- read.csv("pml-training.csv", na.strings = c("NA", "", "#DIV/0!"))
-
-submitTestSet <- read.csv("pml-testing.csv", na.strings = c("NA", "", "#DIV/0!"))
-# View(sourceData)
-
+      submitTestSet <- read.csv("pml-testing.csv", 
+                        na.strings = c("NA", "", "#DIV/0!"))
+      # View(sourceData)
+      
 # remove NA columns both sets
-cols2get <- colSums(is.na(sourceData)) == 0
-cols2get2 <- colSums(is.na(submitTestSet)) == 0
-cleanData <- sourceData[, cols2get]
-cleanSubmit <- submitTestSet[, cols2get2]
+      cols2get <- colSums(is.na(sourceData))==0
+      cols2get2 <- colSums(is.na(submitTestSet))==0
+      cleanData <- sourceData[, cols2get]
+      cleanSubmit <- submitTestSet[,cols2get2]
+      
+      ## View(cleanData)
 
-## View(cleanData)
-
-# remove row 'X', as well as time date window columns which are not related
-# to prediction of 'classe'. will leave 'user_name' in the set - it may or
-# may not be relevant/important in the model.
-
-cleanData <- cleanData[, c(2, 8:60)]
-cleanSubmit <- cleanSubmit[, c(2, 8:60)]
+# remove row "X", as well as time date window columns which 
+# are not related to prediction of 'classe'. I will keep 
+# 'user_name' in the set - it may or may not be important 
+# in the model response.
+      
+      cleanData <- cleanData[,c(2,8:60)]
+      cleanSubmit <- cleanSubmit[,c(2,8:60)]
 ```
 
 ## Data Exploration
@@ -76,14 +76,19 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
 
 
 ```r
+# doParallel with 2 cores reduced runtime ~30%.      
       require(parallel)  
-      require(doParallel)  # parallel with 2 cores reduced runtime ~30%.
+      require(doParallel)  
       mc <- makeCluster(detectCores())
       registerDoParallel(mc)
 
+      
       require(caret)
       
-# create 3 data partitions: 20% initial model(trainset1), 50% second model(trainset2), 30% validation(validset)
+# create 3 data partitions: 
+#     20% initial model(trainset1) 
+#     50% second model(trainset2)
+#     30% validation(validset)
       
       set.seed(616) # for repeatability
       
@@ -120,7 +125,7 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
 ```
 
 ```
-## Time difference of 2.76 mins
+## Time difference of 2.64 mins
 ```
 
 ```r
@@ -141,10 +146,10 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
 ## 
 ## Resampling results across tuning parameters:
 ## 
-##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
-##    2    0.9549253  0.9429393  0.005372393  0.006783223
-##   29    0.9582324  0.9471544  0.010872746  0.013776800
-##   57    0.9531371  0.9406946  0.016068859  0.020366204
+##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD  
+##    2    0.9536501  0.9413278  0.009077960  0.01148049
+##   29    0.9597607  0.9490789  0.009972136  0.01263311
+##   57    0.9533921  0.9410099  0.015487617  0.01963776
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 29.
@@ -213,7 +218,7 @@ The predictor user_name isn't important in this model, so my hypothesis that the
 Given model1 high accuracy (confusionMatrix), I will use the varImp() results from model1 to reduce the feature set and run a second model on the 50% partition named 'trainset2'. I will use scaled importance value of 10 as the cut-off, which will remove user_name and many other predictors.
 
 
-## Model 2:  Random Forest on 50% partition with reduced feature list
+## Model 2:  Random Forest on 50% partition with reduced feature set
 
 
 ```r
@@ -250,11 +255,11 @@ Given model1 high accuracy (confusionMatrix), I will use the varImp() results fr
                     method="rf", 
                     trControl = controla)
       
-      round(Sys.time()-start2,2) ## model2 run time 
+      round(Sys.time()-start2,2) # model2 run time 
 ```
 
 ```
-## Time difference of 3.42 mins
+## Time difference of 3.3 mins
 ```
 
 ```r
@@ -276,9 +281,9 @@ Given model1 high accuracy (confusionMatrix), I will use the varImp() results fr
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
-##    2    0.9822666  0.9775652  0.002140021  0.002703405
-##   13    0.9811456  0.9761519  0.001070813  0.001349607
-##   24    0.9737058  0.9667389  0.003524372  0.004453301
+##    2    0.9818591  0.9770501  0.001789438  0.002256436
+##   13    0.9809418  0.9758931  0.001071026  0.001350518
+##   24    0.9743172  0.9675136  0.002611596  0.003296451
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 2.
@@ -364,9 +369,8 @@ This model used 24 variables as features which are listed earlier in the report 
 ```
 
 ```r
-# the results were submitted via Coursera web and scored 20 of 20 correct.
+# results were submitted and scored 20 of 20 correct.
 ```
-
 
 # Appendix
 
@@ -383,7 +387,6 @@ This appendix has:
 
 ```r
       require(ggplot2)
-
       qplot(roll_belt,pitch_belt, data=cleanData, color = user_name,
             main="Plot1: Roll Belt and Pitch Belt by user_name")
 
@@ -395,29 +398,23 @@ This appendix has:
       
       qplot(pitch_arm,yaw_arm, data=cleanData, color = classe,
             main="Plot 4: Yaw Arm and Pitch Arm by classe")
-      
-      
 
-# the following plots were not run for the report
-
+# the following plots were not shown for the report
+#      boxplot(cleanData)
 #      boxplot(roll_belt~classe,data=cleanData, main="Roll Belt by Classe")
 #      boxplot(pitch_belt~classe,data=cleanData, main="Pitch Belt by Classe")
 #      boxplot(yaw_belt~classe,data=cleanData, main="Yaw Belt by Classe")
-                  
 #      qplot(yaw_arm,roll_arm, data=cleanData, color = classe,
 #            main="Roll Arm and Yaw Arm by classe")
-         
 #      qplot(roll_belt,pitch_belt, data=cleanData, color = classe,
 #           main="Roll and Pitch Belt by classe")
-      
 #      qplot(roll_belt,yaw_belt, data=cleanData, color = classe,
 #            main="Roll and Yaw Belt by classe")
-      
 #      qplot(yaw_belt,pitch_belt, data=cleanData, color = classe,
 #            main="Yaw Belt and Pitch Belt by classe")
 ```
 
-varImp plot:
+Variable Importance plot:
 
 
 ```r
@@ -425,26 +422,19 @@ varImp plot:
 ```
 
 
-## Session Info and Elapsed Time
+## Session Info
 
-My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C700.
+My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C770US.
 
 
 ```r
-      sessionInfo()  
+      print(sessionInfo(),locale=FALSE)  
 ```
 
 ```
 ## R version 3.2.0 (2015-04-16)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
 ## Running under: Windows 7 x64 (build 7601) Service Pack 1
-## 
-## locale:
-## [1] LC_COLLATE=English_United States.1252 
-## [2] LC_CTYPE=English_United States.1252   
-## [3] LC_MONETARY=English_United States.1252
-## [4] LC_NUMERIC=C                          
-## [5] LC_TIME=English_United States.1252    
 ## 
 ## attached base packages:
 ## [1] parallel  stats     graphics  grDevices utils     datasets  methods  
@@ -472,13 +462,17 @@ My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C700.
 ## [40] stringi_0.4-1       munsell_0.4.2
 ```
 
+## Elapsed Time to knit all chunks
+
+
 ```r
       round(Sys.time() - startknit,2)  ## time  to knit all chunks
 ```
 
 ```
-## Time difference of 6.56 mins
+## Time difference of 6.31 mins
 ```
+
 
 ---
 end of report.  Thank you for your review and feedback.
