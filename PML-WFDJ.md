@@ -125,7 +125,7 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
 ```
 
 ```
-## Time difference of 2.64 mins
+## Time difference of 2.66 mins
 ```
 
 ```r
@@ -146,10 +146,10 @@ Comments about plots 1-4: In plot 1, the differences between users are clear, so
 ## 
 ## Resampling results across tuning parameters:
 ## 
-##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD  
-##    2    0.9536501  0.9413278  0.009077960  0.01148049
-##   29    0.9597607  0.9490789  0.009972136  0.01263311
-##   57    0.9533921  0.9410099  0.015487617  0.01963776
+##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
+##    2    0.9541604  0.9419626  0.007313994  0.009255129
+##   29    0.9595058  0.9487652  0.010364708  0.013129760
+##   57    0.9536464  0.9413324  0.016357197  0.020733942
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 29.
@@ -259,7 +259,7 @@ Given model1 high accuracy (confusionMatrix), I will use the varImp() results fr
 ```
 
 ```
-## Time difference of 3.3 mins
+## Time difference of 3.18 mins
 ```
 
 ```r
@@ -280,10 +280,10 @@ Given model1 high accuracy (confusionMatrix), I will use the varImp() results fr
 ## 
 ## Resampling results across tuning parameters:
 ## 
-##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
-##    2    0.9818591  0.9770501  0.001789438  0.002256436
-##   13    0.9809418  0.9758931  0.001071026  0.001350518
-##   24    0.9743172  0.9675136  0.002611596  0.003296451
+##   mtry  Accuracy   Kappa      Accuracy SD   Kappa SD   
+##    2    0.9831839  0.9787263  0.0024457371  0.003090716
+##   13    0.9808399  0.9757649  0.0009795966  0.001234489
+##   24    0.9735019  0.9664834  0.0029369553  0.003709115
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 2.
@@ -422,9 +422,10 @@ Variable Importance plot:
 ```
 
 
-## Session Info
+## Hardware and Session Info
 
-My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C770US.
+My hardware: HP/Compaq C770US.
+Pentium Dual CPU T2390 @ 1.86GHz with 3 GB DDR2 ram. 
 
 
 ```r
@@ -470,7 +471,7 @@ My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C770US.
 ```
 
 ```
-## Time difference of 6.31 mins
+## Time difference of 6.23 mins
 ```
 
 

@@ -94,7 +94,7 @@ img {
 </ul></li>
 <li><a href="#appendix">Appendix</a><ul>
 <li><a href="#plot-code">Plot Code</a></li>
-<li><a href="#session-info">Session Info</a></li>
+<li><a href="#hardware-and-session-info">Hardware and Session Info</a></li>
 <li><a href="#elapsed-time-to-knit-all-chunks">Elapsed Time to knit all chunks</a></li>
 </ul></li>
 </ul>
@@ -199,7 +199,7 @@ img {
                     <span class="dt">trControl =</span> controla)
       
       <span class="kw">round</span>(<span class="kw">Sys.time</span>() -<span class="st"> </span>start1,<span class="dv">2</span>) <span class="co"># model1 run time</span></code></pre>
-<pre><code>## Time difference of 2.64 mins</code></pre>
+<pre><code>## Time difference of 2.66 mins</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">      model1</code></pre>
 <pre><code>## Random Forest 
 ## 
@@ -214,10 +214,10 @@ img {
 ## 
 ## Resampling results across tuning parameters:
 ## 
-##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD  
-##    2    0.9536501  0.9413278  0.009077960  0.01148049
-##   29    0.9597607  0.9490789  0.009972136  0.01263311
-##   57    0.9533921  0.9410099  0.015487617  0.01963776
+##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
+##    2    0.9541604  0.9419626  0.007313994  0.009255129
+##   29    0.9595058  0.9487652  0.010364708  0.013129760
+##   57    0.9536464  0.9413324  0.016357197  0.020733942
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 29.</code></pre>
@@ -297,7 +297,7 @@ img {
                     <span class="dt">trControl =</span> controla)
       
       <span class="kw">round</span>(<span class="kw">Sys.time</span>()-start2,<span class="dv">2</span>) <span class="co"># model2 run time </span></code></pre>
-<pre><code>## Time difference of 3.3 mins</code></pre>
+<pre><code>## Time difference of 3.18 mins</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">      model2</code></pre>
 <pre><code>## Random Forest 
 ## 
@@ -312,10 +312,10 @@ img {
 ## 
 ## Resampling results across tuning parameters:
 ## 
-##   mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
-##    2    0.9818591  0.9770501  0.001789438  0.002256436
-##   13    0.9809418  0.9758931  0.001071026  0.001350518
-##   24    0.9743172  0.9675136  0.002611596  0.003296451
+##   mtry  Accuracy   Kappa      Accuracy SD   Kappa SD   
+##    2    0.9831839  0.9787263  0.0024457371  0.003090716
+##   13    0.9808399  0.9757649  0.0009795966  0.001234489
+##   24    0.9735019  0.9664834  0.0029369553  0.003709115
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 2.</code></pre>
@@ -420,9 +420,9 @@ img {
 <p>Variable Importance plot:</p>
 <pre class="sourceCode r"><code class="sourceCode r">        <span class="kw">plot</span>(<span class="kw">varImp</span>(model1), <span class="dt">main=</span><span class="st">&quot;Ranked variable importance in model 1&quot;</span>)</code></pre>
 </div>
-<div id="session-info" class="section level2">
-<h2>Session Info</h2>
-<p>My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C770US.</p>
+<div id="hardware-and-session-info" class="section level2">
+<h2>Hardware and Session Info</h2>
+<p>My hardware: HP/Compaq C770US. Pentium Dual CPU T2390 @ 1.86GHz with 3 GB DDR2 ram.</p>
 <pre class="sourceCode r"><code class="sourceCode r">      <span class="kw">print</span>(<span class="kw">sessionInfo</span>(),<span class="dt">locale=</span><span class="ot">FALSE</span>)  </code></pre>
 <pre><code>## R version 3.2.0 (2015-04-16)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
@@ -456,7 +456,7 @@ img {
 <div id="elapsed-time-to-knit-all-chunks" class="section level2">
 <h2>Elapsed Time to knit all chunks</h2>
 <pre class="sourceCode r"><code class="sourceCode r">      <span class="kw">round</span>(<span class="kw">Sys.time</span>() -<span class="st"> </span>startknit,<span class="dv">2</span>)  ## time  to knit all chunks</code></pre>
-<pre><code>## Time difference of 6.31 mins</code></pre>
+<pre><code>## Time difference of 6.23 mins</code></pre>
 <hr />
 <p>end of report. Thank you for your review and feedback.</p>
 </div>

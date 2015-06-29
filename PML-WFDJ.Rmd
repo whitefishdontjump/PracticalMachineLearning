@@ -257,9 +257,10 @@ Variable Importance plot:
 ```
 
 
-## Session Info
+## Hardware and Session Info
 
-My hardware: Pentium duo 1.8 Ghz, 3 GB DDR2 ram. HP/Compaq C770US.
+My hardware: HP/Compaq C770US.
+Pentium Dual CPU T2390 @ 1.86GHz with 3 GB DDR2 ram. 
 
 ```{r config}
 
